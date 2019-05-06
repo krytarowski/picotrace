@@ -61,7 +61,7 @@ OUTPUT FORMAT
              SCX     System call exit.
 
              CONTINUED
-                     The process has been continued with SIGCONTINUE.
+                     The process has been continued with SIGCONT.
 
              SIGNALED
                      The process has received non-stoppable signal.
@@ -105,7 +105,7 @@ EXAMPLES
 IMPLEMENTATION NOTES
      The tracer uses the ptrace(2) system call to perform the tracing process.
 
-     The picotrace program has been designd to ship bare functionality only,
+     The picotrace program has been designed to ship bare functionality only,
      without pretty printing of data structures and interpreting passed
      arguments to syscalls.
 
