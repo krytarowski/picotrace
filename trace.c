@@ -151,7 +151,7 @@ worker(void *arg)
 				monitor_crash(pid);
 				break;
 
-			defaukt:
+			default:
 				monitor_signal(pid);
 			}
 		}
