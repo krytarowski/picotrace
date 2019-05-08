@@ -1,0 +1,35 @@
+This repository contains various NetBSD tracers.
+
+HISTORY
+
+1. The original tracer was picotrace released on 2019-05-07.
+
+> picotrace enables syscall trace logging for the specified processes.
+> 
+> The tracer uses the ptrace(2) system call to perform the tracing.
+> 
+> The picotrace program implements bare functionality by design.  It has
+> no pretty printing of data structures or interpretation of numberical arguments
+> to their corresponding syscalls.
+>
+> picotrace is designed to be a framework for other more advanced tracers,
+> and to illustrate canonical usage of the ptrace(2).  New features are
+> not expected unless they reflect a new feature in the kernel.
+
+For historical reasons this repository is called picotrace, although
+it contains now more software programs gathered in a single repository.
+
+2. On 2019-05-08 there was imported the last BSD-3-clause version of strace.
+
+> strace was released under a Berkeley-style license at the
+> request of Paul Kranenburg.
+>
+> Paul was a long term NetBSD developer (pk@).
+>
+> This agreement was broken in 2018 as the strace developers
+> relicensed the software to GPL + LGPL.
+
+Goals of the fork called 'NetBSD strace':
+
+ - Develop strace as a part of the picotrace repository.
+ - Utilize modern NetBSD kernel interfaces.
