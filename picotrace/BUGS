@@ -1,5 +1,5 @@
 KNOWN KERNEL BUGS
 
  - threading applications can lockup due to a kernel bug
- - once a program is traced, it seems to not process signals from other processes (?)
  - vfork is unstable and temporarily disabled
+ - attaching to a sleeping process, terminates it (no EINTR generated?)
