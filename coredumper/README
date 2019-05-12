@@ -1,0 +1,55 @@
+COREDUMPER(1)               General Commands Manual              COREDUMPER(1)
+
+NNAAMMEE
+     ccoorreedduummppeerr – crash detector and core dumper
+
+SSYYNNOOPPSSIISS
+     ccoorreedduummppeerr [--cc _C_O_R_E_N_A_M_E] [--ii] [--oo _O_U_T_P_U_T] [--pp | ccoommmmaanndd [_a_r_g _._._.]]
+
+DDEESSCCRRIIPPTTIIOONN
+     ccoorreedduummppeerr traces specified process and dumps core for crashes.  Certain
+     programs handle program crashes with signal handlers, preventing core(5)
+     files from being generated.  ccoorreedduummppeerr bypasses their signal handlers
+     and for each crash dumps core, without changing capturing mechanism in
+     traced processes.
+
+     The options are as follows:
+
+     --cc _C_O_R_E_N_A_M_E
+             Specifies core file name.  If not set, the default value is
+             selected.  The syntax is specified in core(5).
+
+     --ii      Inherit; pass the trace flags to all future children of the
+             designated processes.
+
+     --pp _P_I_D  Enable (disable) tracing on the indicated process id (only one --pp
+             flag is permitted).
+
+     _c_o_m_m_a_n_d [_a_r_g_s _._._.]
+             Execute _c_o_m_m_a_n_d with the specified trace flags.
+
+     The --pp and _c_o_m_m_a_n_d options are mutually exclusive.
+
+IIMMPPLLEEMMEENNTTAATTIIOONN NNOOTTEESS
+     The tracer uses the ptrace(2) system call to perform the tracing process.
+
+     Similar functionality can be achieved with a debugger like gdb(1),
+     however ccoorreedduummppeerr is quicker and easier to setup for one specific task.
+
+EEXXAAMMPPLLEESS
+     # detect crashes and generate core dumps for an X session
+           $ coredumper -i startx
+
+     # detect crashes and generate core dumps for a running browser
+           $ coredumper -i -p firefox
+
+SSEEEE AALLSSOO
+     gdb(1), picotrace(1), ptrace(2)
+
+HHIISSTTOORRYY
+     Tn ccoorreedduummppeerr command was designed for NetBSD 9.
+
+AAUUTTHHOORRSS
+     Kamil Rytarowski <_k_a_m_i_l_@_N_e_t_B_S_D_._o_r_g>
+
+NetBSD 8.99.39                   May 12, 2019                   NetBSD 8.99.39

@@ -33,3 +33,11 @@ Goals of the fork called 'NetBSD strace':
 
  - Develop strace as a part of the picotrace repository.
  - Utilize modern NetBSD kernel interfaces.
+
+3. On 2019-05-12 there was added coredumper.
+
+> coredumper traces specified processes and dumps core for crashes.
+> Certain programs handle program crashes with signal handlers, preventing
+> core(5) files from being generated. coredumper bypasses their signal
+> handlers and for each crash dumps core, without changing capturing mechanism
+> in traced processes.

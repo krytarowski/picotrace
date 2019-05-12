@@ -83,6 +83,7 @@ struct trace_ops {
 	trace_stopped_func_t stopped;
 };
 
+struct trace_ops trace_ops_coredumper;
 struct trace_ops trace_ops_picotrace;
 
 #endif /* TRACE_H */

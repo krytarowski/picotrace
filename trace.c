@@ -82,7 +82,9 @@ main(int argc, char **argv)
 
 	p = getprogname();
 
-	if (strcmp(p, "picotrace") == 0)
+	if (strcmp(p, "coredumper") == 0)
+		ops = &trace_ops_coredumper;
+	else if (strcmp(p, "picotrace") == 0)
 		ops = &trace_ops_picotrace;
 	else
 		errx(EXIT_FAILURE, "unrecognized program name: '%s'", p);
@@ -131,7 +133,7 @@ worker(void *arg)
 
 	while (true) {
 		TRACE_UNSTOP(pid);
-		
+
 		trace_waitpid(pid, &status, 0);
 
 		/* Tracee terminating event */
