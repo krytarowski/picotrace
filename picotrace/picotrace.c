@@ -98,7 +98,12 @@ picotrace_main(int argc, char **argv)
 			inherit = true;
 			break;
 		case 'o':
-			output = efopen(optarg, "w");
+			/* Allow only single output file */
+			if (output == stdout)
+				usage();
+
+			/* Set close-on-exec */
+			output = efopen(optarg, "ew");
 			break;
 		case 'p':
 			pid = estrtoi(optarg, 0, 0, INTMAX_MAX);
