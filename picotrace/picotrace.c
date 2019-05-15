@@ -43,10 +43,9 @@
 
 #include "children.h"
 #include "misc.h"
+#include "syscalls.h"
 #include "trace.h"
 #include "trace_utils.h"
-
-#include "picotrace.h"
 
 static void usage(void) __dead;
 static void attach(pid_t);
