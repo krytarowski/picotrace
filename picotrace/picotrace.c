@@ -988,7 +988,7 @@ siginfo_handler(int dummy)
 	children_tree_dump(siginfo_child);
 }
 
-struct trace_ops trace_ops_picotrace = {
+struct trace_ops ops = {
 	.main = picotrace_main,
 	.end = picotrace_end,
 	.startup = picotrace_startup,

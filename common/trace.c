@@ -49,29 +49,27 @@ static mtx_t mtx;
 static cnd_t cnd;
 static int workers;
 
-static struct trace_ops *ops;
-
-#define TRACE_MAIN(argc, argv) (*ops->main)(argc, argv)
-#define TRACE_END() (*ops->end)()
-#define TRACE_STARTUP(pid) (*ops->startup)(pid)
-#define TRACE_UNSTOP(pid) (*ops->unstop)(pid)
-#define TRACE_CONTINUED(pid) (*ops->continued)(pid)
-#define TRACE_SIGNALED(pid, sig, core) (*ops->signaled)(pid, sig, core)
-#define TRACE_EXITED(pid, status) (*ops->exited)(pid, status)
-#define TRACE_CLEANUP(pid) (*ops->cleanup)(pid)
-#define TRACE_DEBUGREGISTER(pid, lid) (*ops->debugregister)(pid, lid)
-#define TRACE_SINGLESTEP(pid, lid) (*ops->singlestep)(pid, lid)
-#define TRACE_BREAKPOINT(pid, lid) (*ops->breakpoint)(pid, lid)
-#define TRACE_SYSCALLENTRY(pid, lid, si) (*ops->syscallentry)(pid, lid, si)
-#define TRACE_SYSCALLEXIT(pid, lid, si) (*ops->syscallexit)(pid, lid, si)
-#define TRACE_EXEC(pid, lid) (*ops->exec)(pid, lid)
-#define TRACE_FORKED(pid, lid, child) (*ops->forked)(pid, lid, child)
-#define TRACE_VFORKED(pid, lid, child) (*ops->vforked)(pid, lid, child)
-#define TRACE_VFORKDONE(pid, lid, child) (*ops->vforkdone)(pid, lid, child)
-#define TRACE_LWPCREATED(pid, lid, lwp) (*ops->lwpcreated)(pid, lid, lwp)
-#define TRACE_LWPEXITED(pid, lid, lwp) (*ops->lwpexited)(pid, lid, lwp)
-#define TRACE_CRASHED(pid, lid, si) (*ops->crashed)(pid, lid, si)
-#define TRACE_STOPPED(pid, lid, si) (*ops->stopped)(pid, lid, si)
+#define TRACE_MAIN(argc, argv) (*ops.main)(argc, argv)
+#define TRACE_END() (*ops.end)()
+#define TRACE_STARTUP(pid) (*ops.startup)(pid)
+#define TRACE_UNSTOP(pid) (*ops.unstop)(pid)
+#define TRACE_CONTINUED(pid) (*ops.continued)(pid)
+#define TRACE_SIGNALED(pid, sig, core) (*ops.signaled)(pid, sig, core)
+#define TRACE_EXITED(pid, status) (*ops.exited)(pid, status)
+#define TRACE_CLEANUP(pid) (*ops.cleanup)(pid)
+#define TRACE_DEBUGREGISTER(pid, lid) (*ops.debugregister)(pid, lid)
+#define TRACE_SINGLESTEP(pid, lid) (*ops.singlestep)(pid, lid)
+#define TRACE_BREAKPOINT(pid, lid) (*ops.breakpoint)(pid, lid)
+#define TRACE_SYSCALLENTRY(pid, lid, si) (*ops.syscallentry)(pid, lid, si)
+#define TRACE_SYSCALLEXIT(pid, lid, si) (*ops.syscallexit)(pid, lid, si)
+#define TRACE_EXEC(pid, lid) (*ops.exec)(pid, lid)
+#define TRACE_FORKED(pid, lid, child) (*ops.forked)(pid, lid, child)
+#define TRACE_VFORKED(pid, lid, child) (*ops.vforked)(pid, lid, child)
+#define TRACE_VFORKDONE(pid, lid, child) (*ops.vforkdone)(pid, lid, child)
+#define TRACE_LWPCREATED(pid, lid, lwp) (*ops.lwpcreated)(pid, lid, lwp)
+#define TRACE_LWPEXITED(pid, lid, lwp) (*ops.lwpexited)(pid, lid, lwp)
+#define TRACE_CRASHED(pid, lid, si) (*ops.crashed)(pid, lid, si)
+#define TRACE_STOPPED(pid, lid, si) (*ops.stopped)(pid, lid, si)
 
 int
 main(int argc, char **argv)
@@ -81,13 +79,6 @@ main(int argc, char **argv)
 	setprogname(argv[0]);
 
 	p = getprogname();
-
-	if (strcmp(p, "coredumper") == 0)
-		ops = &trace_ops_coredumper;
-	else if (strcmp(p, "picotrace") == 0)
-		ops = &trace_ops_picotrace;
-	else
-		errx(EXIT_FAILURE, "unrecognized program name: '%s'", p);
 
 	trace_cnd_init(&cnd);
 	trace_mtx_init(&mtx, mtx_plain);

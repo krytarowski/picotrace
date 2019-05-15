@@ -409,7 +409,7 @@ siginfo_handler(int dummy)
 	children_tree_dump(siginfo_child);
 }
 
-struct trace_ops trace_ops_coredumper = {
+struct trace_ops ops = {
 	.main = coredumper_main,
 	.end = coredumper_end,
 	.startup = coredumper_startup,
