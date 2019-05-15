@@ -2,13 +2,13 @@
 
 PROG=	coredumper
 
-SRCS+=	children.c coredumper.c
+SRCS+=	coredumper.c
 
 # Common files, shared between tracers.
-.PATH:	..
-SRCS+=	trace.c trace_utils.c
+.PATH:	../common
+SRCS+=	children.c trace.c trace_utils.c
 
-CPPFLAGS+=	-I..
+CPPFLAGS+=	-I../common
 
 DPADD+=	${LIBUTIL}
 LDADD+=	-lutil

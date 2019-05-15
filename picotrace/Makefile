@@ -2,16 +2,13 @@
 
 PROG=	picotrace
 
-# misc.c and misc.h are taken from src/usr.bin/ktruss
-# picotrace.h is pregenerated with picotrace.awk
-
-SRCS+=	children.c picotrace misc.c
+SRCS+=	picotrace.c
 
 # Common files, shared between tracers.
-.PATH:	..
-SRCS+=	trace.c trace_utils.c
+.PATH:	../common
+SRCS+=	children.c misc.c trace.c trace_utils.c
 
-CPPFLAGS+=	-I..
+CPPFLAGS+=	-I../common
 
 DPADD+=	${LIBUTIL}
 LDADD+=	-lutil
