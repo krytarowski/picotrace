@@ -1,8 +1,11 @@
-/* $NetBSD: plist_tree.h,v 1.1 2016/10/01 18:37:15 kamil Exp $ */
+/*	$NetBSD$	*/
 
 /*-
- * Copyright (c) 2016 The NetBSD Foundation, Inc.
+ * Copyright (c) 2019 The NetBSD Foundation, Inc.
  * All rights reserved.
+ *
+ * This code is derived from software contributed to The NetBSD Foundation
+ * by Kamil Rytarowski.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,18 +35,19 @@
 #ifndef CHILDREN_H
 #define CHILDREN_H
 
-#include <stdio.h>
-
-void
+void *
 children_tree_init(void);
 
 int
-children_tree_insert(pid_t);
+children_tree_insert(void *, int, void *);
 
 int
-children_tree_remove(pid_t);
+children_tree_remove(void *, int);
+
+void *
+children_tree_find(void *, int);
 
 int
-children_tree_dump(void (*)(pid_t));
+children_tree_dump(void *, void (*)(int));
 
 #endif /* CHILDREN_H */

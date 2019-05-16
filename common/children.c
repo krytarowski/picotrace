@@ -1,8 +1,11 @@
-/* $NetBSD: plist_tree.c,v 1.4 2018/02/23 06:31:34 adam Exp $ */
+/*	$NetBSD$	*/
 
 /*-
- * Copyright (c) 2016 The NetBSD Foundation, Inc.
+ * Copyright (c) 2019 The NetBSD Foundation, Inc.
  * All rights reserved.
+ *
+ * This code is derived from software contributed to The NetBSD Foundation
+ * by Kamil Rytarowski.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,44 +33,55 @@
  */
 
 #include <sys/cdefs.h>
-__RCSID("$NetBSD: plist_tree.c,v 1.4 2018/02/23 06:31:34 adam Exp $");
+__RCSID("$NetBSD$");
 
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/rbtree.h>
 #include <assert.h>
-#include <regex.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
 
+#include <util.h>
+
+/*
+ * The int type for key assumes:
+ *   sizeof(pid_t) == sizeof(lwpid_t) == sizeof(int)
+ *
+ * The value pointer is a shallow copy of an object.
+ */
 struct children_pair_entry {
-	pid_t first;  /* key   */
-	pid_t second; /* value */
+	int first;  /* key   */
+	void *second; /* value */
 	rb_node_t pair_node;
 };
 
 static int
 children_compare_key(void *ctx, const void *n1, const void *keyp)
 {
-	pid_t a1;
-	pid_t a2;
+	int a1;
+	int a2;
 
 	assert(n1);
 	assert(keyp);
 
 	a1 = ((struct children_pair_entry*)n1)->first;
-	a2 = (pid_t)(intptr_t)keyp;
+	a2 = (int)(intptr_t)keyp;
 
-	return a1 != a2;
+	if (a1 < a2)
+		return 1;
+	if (a1 > a2)
+		return -1;
+	return 0;
 }
 
 static int
 children_compare_nodes(void *ctx, const void *n1, const void *n2)
 {
-	pid_t key2;
+	int key2;
 
 	assert(n1);
 	assert(n2);
@@ -84,77 +98,86 @@ static const rb_tree_ops_t children_tree_ops = {
 	.rbto_context = NULL,
 };
 
-/* children_tree_singleton */
-
-static struct children_tree_type {
+struct children_tree_type {
 	rb_tree_t children_tree;
 	rb_tree_t children_vars_tree;
-	int initialized;
-	regex_t children_regex_options;
-} children_tree_singleton = {
-	.initialized = 0
 };
 
-void
+void *
 children_tree_init(void)
 {
+	struct children_tree_type *tree;
 	int ret;
 
-	assert(children_tree_singleton.initialized == 0);
+	tree = emalloc(sizeof(struct children_tree_type));
 
-	rb_tree_init(&children_tree_singleton.children_tree, &children_tree_ops);
+	rb_tree_init(&tree->children_tree, &children_tree_ops);
 
-	children_tree_singleton.initialized = 1;
+	return tree;
 }
 
 int
-children_tree_insert(pid_t entry)
+children_tree_insert(void *tree, int entry, void *value)
 {
 	struct children_pair_entry *pair;
 	struct children_pair_entry *opair;
 
-	assert(children_tree_singleton.initialized == 1);
+	assert(tree);
+	assert(entry > 0);
 
-	pair = malloc(sizeof(*pair));
-	if (pair == NULL)
-		err(EXIT_FAILURE, "malloc");
+	pair = emalloc(sizeof(*pair));
 
 	pair->first = entry;
-	pair->second = entry;
+	pair->second = value; /* shallow copy */
 
-	opair = rb_tree_insert_node(&children_tree_singleton.children_tree, pair);
+	opair = rb_tree_insert_node(tree, pair);
 	assert (opair == pair);
 
 	return 0;
 }
 
 int
-children_tree_remove(pid_t entry)
+children_tree_remove(void *tree, int entry)
 {
 	struct children_pair_entry *pair;
 
-	assert(children_tree_singleton.initialized == 1);
-	assert(entry);
+	assert(tree);
+	assert(entry > 0);
 
-	pair = rb_tree_find_node(&children_tree_singleton.children_tree, (void *)(intptr_t)entry);
+	pair = rb_tree_find_node(tree, (void *)(intptr_t)entry);
 	assert(pair != NULL);
 
-        rb_tree_remove_node(&children_tree_singleton.children_tree, pair);
+	rb_tree_remove_node(tree, pair);
 
 	free(pair);
 
 	return 0;
 }
 
-int
-children_tree_dump(void (*callback)(pid_t))
+void *
+children_tree_find(void *tree, int entry)
 {
 	struct children_pair_entry *pair;
 
-	assert(callback);
-        assert(children_tree_singleton.initialized == 1);
+	assert(tree);
+	assert(entry > 0);
 
-	RB_TREE_FOREACH(pair, &children_tree_singleton.children_tree) {
+	pair = rb_tree_find_node(tree, (void *)(intptr_t)entry);
+	if (pair == NULL)
+		return NULL;
+
+	return pair->second;
+}
+
+int
+children_tree_dump(void *tree, void (*callback)(int))
+{
+	struct children_pair_entry *pair;
+
+	assert(tree);
+	assert(callback);
+
+	RB_TREE_FOREACH(pair, tree) {
 		assert(pair);
 
 		(*callback)(pair->first);

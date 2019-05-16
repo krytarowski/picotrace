@@ -58,6 +58,8 @@ static int corelen;
 
 static bool inherit;
 
+static void *pid_tree;
+
 static mtx_t mtx;
 
 static void
@@ -98,7 +100,7 @@ coredumper_main(int argc, char **argv)
 		usage();
 
 	trace_mtx_init(&mtx, mtx_plain);
-	children_tree_init();
+	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
@@ -124,7 +126,7 @@ coredumper_startup(pid_t pid)
 	ptrace_event_t pe;
 
 	mtx_lock(&mtx);
-	children_tree_insert(pid);
+	children_tree_insert(pid_tree, pid, NULL);
 	mtx_unlock(&mtx);
 
 	if (inherit) {
@@ -194,7 +196,7 @@ coredumper_cleanup(pid_t pid)
 {
 
 	mtx_lock(&mtx);
-	children_tree_remove(pid);
+	children_tree_remove(pid_tree, pid);
 	mtx_unlock(&mtx);
 }
 
@@ -386,7 +388,7 @@ static void
 signal_handler(int sig)
 {
 
-	children_tree_dump(detach_child);
+	children_tree_dump(pid_tree, detach_child);
 
 	exit(0);
 }
@@ -406,7 +408,7 @@ static void
 siginfo_handler(int dummy)
 {
 
-	children_tree_dump(siginfo_child);
+	children_tree_dump(pid_tree, siginfo_child);
 }
 
 struct trace_ops ops = {

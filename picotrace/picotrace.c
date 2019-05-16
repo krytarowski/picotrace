@@ -53,7 +53,7 @@ static void spawn(char **);
 static void print_argv(pid_t);
 static void print_env(pid_t);
 static void print_elf_auxv(pid_t);
-static void resolve_child_name(pid_t);
+static void resolve_child_name(pid_t, char *, size_t);
 static char *copyinstr(pid_t pid, void *offs);
 static const char *err2string(int num);
 static const char *sig2string(int num);
@@ -65,14 +65,19 @@ static void siginfo_handler(int dummy);
 static bool inherit;
 static FILE *output = stdout;
 
-static thread_local char child_name[NAME_MAX];
+struct pid_context {
+	char name[NAME_MAX];
+};
+
+static void *pid_tree;
+static thread_local struct pid_context *pid_ctx;
 
 static mtx_t mtx;
 
 #define PRINT(fmt, ...)							\
 	do {							    	\
 		fprintf(output, "%6d %6d %14s " fmt,			\
-			pid, lid, child_name, ## __VA_ARGS__);		\
+			pid, lid, pid_ctx->name, ## __VA_ARGS__);	\
 	} while(0)
 
 #define SPRINTF(a,...)							\
@@ -125,7 +130,7 @@ picotrace_main(int argc, char **argv)
 		usage();
 
 	trace_mtx_init(&mtx, mtx_plain);
-	children_tree_init();
+	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
@@ -150,8 +155,12 @@ picotrace_startup(pid_t pid)
 {
 	ptrace_event_t pe;
 
+	pid_ctx = emalloc(sizeof(*pid_ctx));
+
+	resolve_child_name(pid, pid_ctx->name, sizeof(pid_ctx->name));
+
 	mtx_lock(&mtx);
-	children_tree_insert(pid);
+	children_tree_insert(pid_tree, pid, pid_ctx);
 	mtx_unlock(&mtx);
 
 	if (inherit) {
@@ -166,8 +175,6 @@ picotrace_startup(pid_t pid)
 	pe.pe_set_event |= PTRACE_LWP_EXIT;
 
 	trace_ptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
-
-	resolve_child_name(pid);
 
 	print_argv(pid);
 	print_env(pid);
@@ -246,8 +253,10 @@ picotrace_cleanup(pid_t pid)
 {
 
 	mtx_lock(&mtx);
-	children_tree_remove(pid);
+	children_tree_remove(pid_tree, pid);
 	mtx_unlock(&mtx);
+
+	free(pid_ctx);
 }
 
 static void
@@ -839,7 +848,7 @@ print_elf_auxv(pid_t pid)
 }
 
 static void
-resolve_child_name(pid_t pid)
+resolve_child_name(pid_t pid, char *child_name, size_t maxlen)
 {
 	char buf[PATH_MAX];
 	size_t buflen;
@@ -852,9 +861,13 @@ resolve_child_name(pid_t pid)
 
 	buflen = sizeof(buf);
 
+	/*
+	 * There must be used an intermediate buffer with sufficient length as
+	 * otherwise the sysctl(3) call will reject the operation.
+	 */
 	trace_sysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
 
-	estrlcpy(child_name, basename(buf), sizeof(child_name));
+	estrlcpy(child_name, basename(buf), maxlen);
 }
 
 static char *
@@ -962,7 +975,7 @@ signal_handler(int sig)
 		fprintf(output, "RECEIVED signal %d\n", sig);
 	}
 
-	children_tree_dump(detach_child);
+	children_tree_dump(pid_tree, detach_child);
 
 	fprintf(output, "EXITING\n");
 
@@ -977,14 +990,14 @@ siginfo_child(pid_t pid)
 
 	lid = -1;
 
-	printf("pinspect[%d] attached to child=%d\n", getpid(), pid);
+	printf("%s[%d] attached to child=%d\n", getprogname(), getpid(), pid);
 }
 
 static void
 siginfo_handler(int dummy)
 {
 
-	children_tree_dump(siginfo_child);
+	children_tree_dump(pid_tree, siginfo_child);
 }
 
 struct trace_ops ops = {
