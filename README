@@ -9,7 +9,7 @@ HISTORY
 > The tracer uses the ptrace(2) system call to perform the tracing.
 > 
 > The picotrace program implements bare functionality by design.  It has
-> no pretty printing of data structures or interpretation of numberical arguments
+> no pretty printing of data structures or interpretation of numerical arguments
 > to their corresponding syscalls.
 >
 > picotrace is designed to be a framework for other more advanced tracers,
@@ -17,9 +17,9 @@ HISTORY
 > not expected unless they reflect a new feature in the kernel.
 
 For historical reasons this repository is called picotrace, although
-it contains now more software programs gathered in a single repository.
+it now contains more software programs gathered in a single repository.
 
-2. On 2019-05-08 there was imported the last BSD-3-clause version of strace.
+2. On 2019-05-08 the last BSD-3-clause version of strace was imported.
 
 > strace was released under a Berkeley-style license at the
 > request of Paul Kranenburg.
@@ -34,7 +34,7 @@ Goals of the fork called 'NetBSD strace':
  - Develop strace as a part of the picotrace repository.
  - Utilize modern NetBSD kernel interfaces.
 
-3. On 2019-05-12 there was added coredumper.
+3. On 2019-05-12 coredumper was added.
 
 > coredumper traces specified processes and dumps core for crashes.
 > Certain programs handle program crashes with signal handlers, preventing
