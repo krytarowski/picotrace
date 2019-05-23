@@ -143,7 +143,6 @@ worker(void *arg)
 			case SIGBUS:
 				monitor_crash(pid);
 				break;
-
 			default:
 				monitor_signal(pid);
 			}
@@ -244,10 +243,12 @@ monitor_sigtrap(pid_t pid)
 
 	default:
 		/* Fallback to regular crash/signal. */
-		if (psi.psi_siginfo.si_code <= SI_USER)
-			monitor_crash(pid);
-		else
-			monitor_signal(pid);
+		if (psi.psi_siginfo.si_code <= SI_USER ||
+		    psi.psi_siginfo.si_code == SI_NOINFO) {
+			TRACE_STOPPED(pid, lid, &psi.psi_siginfo);
+		} else {
+			TRACE_CRASHED(pid, lid, &psi.psi_siginfo);
+		}
 		break;
 	}
 }
@@ -262,7 +263,12 @@ monitor_crash(pid_t pid)
 
 	lid = psi.psi_lwpid;
 
-	TRACE_CRASHED(pid, lid, &psi.psi_siginfo);
+	if (psi.psi_siginfo.si_code <= SI_USER ||
+            psi.psi_siginfo.si_code == SI_NOINFO) {
+		TRACE_STOPPED(pid, lid, &psi.psi_siginfo);
+	} else {
+		TRACE_CRASHED(pid, lid, &psi.psi_siginfo);
+	}
 }
 
 static void
