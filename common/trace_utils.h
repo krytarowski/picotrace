@@ -61,6 +61,8 @@ pid_t trace_waitpid(pid_t, int *, int);
 int trace_ptrace(int, pid_t, void *, int);
 pid_t trace_fork(void);
 int trace_sysctl(const int *, u_int, void *, size_t *, const void *, size_t);
-int trace_snprintf(char * __restrict, size_t, const char * __restrict, ...);
+int trace_snprintf(char * __restrict, size_t, const char * __restrict, ...)
+    __printflike(3,4);
+int trace_timespec_get(struct timespec *, int);
 
 #endif /* TRACE_UTILS_H */

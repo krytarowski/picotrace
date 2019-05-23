@@ -42,6 +42,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <threads.h>
 #include <unistd.h>
 
@@ -215,4 +216,14 @@ trace_snprintf(char * __restrict ret, size_t size,
 		errx(EXIT_FAILURE, "Cannot format string");
 	va_end(ap);
 	return rv;
+}
+
+int
+trace_timespec_get(struct timespec *ts, int base)
+{
+
+	if (timespec_get(ts, base) == 0)
+		errx(EXIT_FAILURE, "timespec_get");
+
+	return base;
 }
