@@ -103,11 +103,11 @@ picotrace_main(int argc, char **argv)
 			break;
 		case 'o':
 			/* Allow only single output file */
-			if (output == stdout)
+			if (output != stdout)
 				usage();
 
 			/* Set close-on-exec */
-			output = efopen(optarg, "ew");
+			output = efopen(optarg, "we");
 			break;
 		case 'p':
 			pid = estrtoi(optarg, 0, 0, INTMAX_MAX);
