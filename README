@@ -41,3 +41,8 @@ Goals of the fork called 'NetBSD strace':
 > core(5) files from being generated. coredumper bypasses their signal
 > handlers and for each crash dumps core, without changing capturing mechanism
 > in traced processes.
+
+4. On 2019-05-13 FreeBSD truss (SVN r. 347514) was imported
+
+Soon later on 2019-05-23 it was replaced with a new homegrown version
+dedicated for the NetBSD Operating System.
