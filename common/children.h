@@ -50,4 +50,7 @@ children_tree_find(void *, int);
 int
 children_tree_dump(void *, void (*)(int));
 
+void
+children_tree_destroy(void *);
+
 #endif /* CHILDREN_H */

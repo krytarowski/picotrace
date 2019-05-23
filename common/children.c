@@ -185,3 +185,15 @@ children_tree_dump(void *tree, void (*callback)(int))
 
 	return 0;
 }
+
+void
+children_tree_destroy(void *tree)
+{
+	struct children_pair_entry *pair, *tmp;
+
+	RB_TREE_FOREACH_SAFE(pair, tree, tmp) {
+		rb_tree_remove_node(tree, pair);
+	}
+
+	free(tree);
+}
