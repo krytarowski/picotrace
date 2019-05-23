@@ -29,20 +29,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TRUSS_H
-#define TRUSS_H
 
-#define MODE_ABSOLUTE_TIMESTAMP		__BIT(0)	/* -d */
-#define MODE_RELATIVE_TIMESTAMP		__BIT(1)	/* -D */
-#define MODE_EXEC_ARGS			__BIT(2)	/* -a */
-#define MODE_EXEC_ENV			__BIT(3)	/* -e */
-#define MODE_EXEC_AUXV			__BIT(4)	/* -x */
-#define MODE_LWPID			__BIT(5)	/* -H */
-#define MODE_SIGNALS			__BIT(6)	/* -S */
-#define MODE_COUNT			__BIT(7)	/* -c */
-#define MODE_INHERIT			__BIT(8)	/* -f */
+#ifndef EVENTS_H
+#define EVENTS_H
 
-void count_main(FILE *, int);
-void events_main(FILE *, int, size_t);
+#include <sys/types.h>
+#include <sys/siginfo.h>
 
-#endif /* TRUSS_H */
+void set_string_max_size(size_t);
+char *decode_args(pid_t pid, siginfo_t *, char *, size_t);
+char *decode_retval(siginfo_t *, char *, size_t);
+
+#endif /* EVENTS_H */
