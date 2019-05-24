@@ -110,8 +110,10 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_fork: /* 2 */
 		break;
 	case SYS_read: /* 3 */
-		SPRINTF("%d, %#p, %zu", si->si_args[0], si->si_args[1],
+		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
 		    si->si_args[2]);
+		SPRINTF("%d, %s, %zu", si->si_args[0], s, si->si_args[2]);
+		free(s);
 		break;
 	case SYS_write: /* 4 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
