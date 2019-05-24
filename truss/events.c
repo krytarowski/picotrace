@@ -138,6 +138,8 @@ events_startup(pid_t pid)
 
 	pid_ctx = emalloc(sizeof(*pid_ctx));
 
+	resolve_child_name(pid, pid_ctx->name, sizeof(pid_ctx->name));
+
 	mtx_lock(&mtx);
 	children_tree_insert(pid_tree, pid, pid_ctx);
 	mtx_unlock(&mtx);
@@ -510,7 +512,7 @@ report(pid_t pid, lwpid_t lwp, char *format, ...)
 	trace_timespec_get(&now_ts, TIME_UTC);
 
 	if (mode & MODE_INHERIT) {
-		SPRINTF("%5d ", pid);
+		SPRINTF("%5d %s ", pid, pid_ctx->name);
 	}
 
 	if (mode & MODE_LWPID) {
