@@ -377,6 +377,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_43_lstat43: /* 40 */
 		break;
 	case SYS_dup: /* 41 */
+		SPRINTF("%d", si->si_args[0]);
 		break;
 	case SYS_pipe: /* 42 */
 		break;
@@ -516,6 +517,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_43_ogetdtablesize: /* 89 */
 		break;
 	case SYS_dup2: /* 90 */
+		SPRINTF("%d, %d", si->si_args[0], si->si_args[1]);
 		break;
 	case SYS_fcntl: /* 92 */
 		break;
