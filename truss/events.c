@@ -683,7 +683,7 @@ read_argv(pid_t pid)
 	p = argv;
 	for (i = 0; i < argc; i++) {
 		len = strlen(p);
-		report(pid, lid, "ARGV[%d] '%s'\n", i, p);
+		report(pid, lid, "ARGV[%d] '%s'", i, p);
 		p += len + 1;
 	}
 
@@ -724,7 +724,7 @@ read_env(pid_t pid)
 	p = envv;
 	for (i = 0; i < envc; i++) {
 		len = strlen(p);
-		report(pid, lid, "ENV[%d] '%s'\n", i, p);;
+		report(pid, lid, "ENV[%d] '%s'", i, p);;
 		p += len + 1;
 	}
 
@@ -860,7 +860,7 @@ read_elf_auxv(pid_t pid)
 			SPRINTF("UNKNOWN-TAG-%ld=%#lx", aux->a_type, aux->a_v);
 			break;
 		}
-		report(pid, lid, "%s\n", buf);
+		report(pid, lid, "%s", buf);
 	}
 }
 
