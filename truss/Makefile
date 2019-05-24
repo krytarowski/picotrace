@@ -17,7 +17,7 @@ COPTS+=	-pthread
 DPADD+=	${LIBPTHREAD}
 LDADD+=	-lpthread
 
-COPTS+=	-g -O0
+#COPTS+=	-g -O0
 
 #COPTS+=	-fsanitize=address
 #LDADD+=	-fsanitize=address
