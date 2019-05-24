@@ -98,7 +98,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 
 	n = 0;
 
-	SPRINTF("%s(", syscall_info[si->si_sysnum]);
+	SPRINTF("%s(", syscall_info[si->si_sysnum].name);
 
 	switch (si->si_sysnum) {
 	case SYS_syscall: /* 0 */
