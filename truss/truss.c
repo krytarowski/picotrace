@@ -144,7 +144,7 @@ usage(void)
 {
 
 	fprintf(stderr,
-	    "Usage: truss [-DHSacdef] [-o OUTPUT] [-s #] "
+	    "Usage: truss [-DHSacdefx] [-o OUTPUT] [-s #] "
 	    "[-p PID | <command> [<arg ...>]]\n",
 	    getprogname());
 
