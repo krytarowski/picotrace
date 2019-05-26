@@ -888,6 +888,7 @@ copyinstr(pid_t pid, void *offs)
 	pio.piod_len = bufchunklen;
 
 	n = 0;
+	canonical = false;
 
 	for (;;) {
 		errno = 0;
