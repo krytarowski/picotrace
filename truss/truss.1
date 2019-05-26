@@ -27,16 +27,17 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd May 8, 2019
+.Dd May 26, 2019
 .Dt TRUSS 1
 .Os
 .Sh NAME
-.Nm picotrace
+.Nm truss
 .Nd system call process tracer
 .Sh SYNOPSIS
 .Nm
-.Op Fl i
+.Op Fl DHSacdefx
 .Op Fl o Ar OUTPUT
+.Op Fl s Ar #
 .Oo Fl p | Ic command Oo Ar arg ... Oc Oc
 .Sh DESCRIPTION
 .Nm
@@ -44,36 +45,68 @@ enables syscall trace logging for the specified processes.
 Trace data is logged to the file
 .Pa OUTPUT ,
 otherwise if not specified to
-.Pa stdout .
+.Pa stderr .
 The operations that are traced include system call entry and exit,
+.Xr exec 3 ,
 signal delivery, forking, vforking, LWP creation, LWP exiting and
 process exiting.
-Additionally
-.Nm
-logs arguments passed to a program,
-environment variables and ELF auxiliary vector values.
 .Pp
 Once tracing is enabled on a process, trace data will be logged until
 either the process exits or the trace point is cleared.
 A traced process can generate large amounts of log data quickly.
 .Pp
+.Nm
+supports two modes of execution:
+.Bl -tag -width counting
+.It counting
+Print summary of reported syscalls on
+.Nm
+termination.
+.It events
+Register and report all of the supported events on the output.
+.El
+.Pp
 The trace output is in plain text, human readable.
 .Pp
 The options are as follows:
 .Bl -tag -width indent
-.It Fl i
-Inherit; pass the trace flags to all future children of the designated
-processes.
+.It Fl D
+Print relative timestamp,
+calculated since the previous event.
+.It Fl H
+Print LWP ID (thread id).
+.It Fl S
+Print information about signals.
+.It Fl a
+Print arguments passed to
+.Xr exec 3 .
+.It Fl c
+Execute in the counting mode.
+.It Fl e
+Print environment variables passed to
+.Xr exec 3 .
+.It Fl d
+Print absolute timestamp,
+calculated since the
+.Nm
+start.
+.It Fl f
+Track children newly spawned by the traced process.
 .It Fl o Ar OUTPUT
 Log trace records to
 .Ar outfile .
 Without this option
 .Nm
-will print its output to standard output.
+will print its output to standard error.
 .It Fl p Ar PID
-Enable (disable) tracing on the indicated process id (only one
+Enable tracing on the indicated process id (only one
 .Fl p
 flag is permitted).
+.It Fl s Ar #
+Set maximum length of a decoded string that is associated with a decoded syscall argument.
+.It Fl x
+Print AUX vector passed to
+.Xr exec 3 .
 .It Ar command Op Ar args ...
 Execute
 .Ar command
@@ -85,95 +118,39 @@ The
 and
 .Ar command
 options are mutually exclusive.
-.Sh OUTPUT FORMAT
-The output is grouped into 5 columns:
-.Bl -tag -width indent
-.It pid
-Traced process id.
-.It lwp
-Traced process LWP that caused an event.
-The 0 value is a special case for whole-process events.
-.It exename
-Traced process program basename.
-.It event
-Recorded event:
-.Bl -tag -width indent
-.It ARGV
-Field in the argv[] vector.
-.It ENV
-Field in the env[] vector.
-.It AUXV
-Field in the auxv[] vector.
-.It SCE
-System call entry.
-.It SCX
-System call exit.
-.It CONTINUED
-The process has been continued with
-.Dv SIGCONT .
-.It SIGNALED
-The process has received non-stoppable signal.
-.It EXITED
-The process has exited.
-.It EXEC
-The process has replaced its process image with a new process image.
-.It FORKED
-The process has forked.
-.It VFORKED
-The process has vforked.
-.It VFORK_DONE
-The process has resumed after
-.Xr vfork 2 .
-.It LWP_CREATED
-The process has created a thread.
-.It LWP_EXITED
-The process has exited a thread.
-.It CRASHED
-The process has crashed.
-.It STOPPED
-The process has stopped
-.El
-.It additional information
-If available, extra pieces of information.
-.El
+.Pp
+The
+.Fl c
+option changes the mode to counting and ignores unrelated arguments to
+.Nm .
 .Sh IMPLEMENTATION NOTES
 The tracer uses the
 .Xr ptrace 2
 system call to perform the tracing process.
 .Pp
-The
 .Nm
-program has been designed to ship bare functionality only,
-without pretty printing of data structures and interpreting passed
-arguments to syscalls.
-.Pp
-.Nm
-is designed to be a framework for other more advanced tracers and
-illustration of the canonical usage of the
-.Xr ptrace 2
-system call.
-New features are not expected unless they present a new feature in the
-.Nx
-kernel.
+is a fork and extension of
+.Xr picotrace 1 .
 .Sh EXAMPLES
 # trace the events of process id 34
-.Dl $ picotrace -p 34
+.Dl $ truss -p 34
 .Pp
 # spawn and trace process sh(1) with all of its children and log the
 record to "trace.txt"
-.Dl $ picotrace -o "trace.txt" -i sh
+.Dl $ truss -o "trace.txt" -i sh
 .Sh SEE ALSO
+.Xr coredumper 1 ,
 .Xr ktruss 1 ,
+.Xr picotrace ,
 .Xr ptrace 2
 .Sh HISTORY
 .Nm
-is inspired by
+is a reimplementation of
 .Nm truss
 from
 .Fx
-and
-.Nm strace
-from Linux.
+for
+.Nx .
 .Pp
 Tn
 .Nm
