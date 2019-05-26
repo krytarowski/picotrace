@@ -1,5 +1,0 @@
-KNOWN KERNEL BUGS
-
- - vfork is unstable and temporarily disabled
- - attaching to a sleeping process, terminates it (no EINTR generated?)
- - handle the SIGSTOP, SIGTSTP, SIGTTIN, SIGTTOU signals from other sources
