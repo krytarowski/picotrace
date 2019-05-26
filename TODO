@@ -1,0 +1,43 @@
+Planned new tracers and utilities based on top of picotrace(2), dedicated for
+the NetBSD kernel:
+
+ - fakeroot
+ - fakechroot
+ - strace
+ - xtrace (X tracing) https://github.com/deepfire/xtrace
+ - ltrace https://github.com/dkogan/ltrace
+ - ftrace https://github.com/sciencemanx/ftrace
+ - Xstracer for a dynamic language bindings:
+   - luastracer Lua bindings
+   - pystracer Python bindings
+   - rubystracer Ruby bindings
+   - perlstracer Perl bindings
+ - fdclose https://github.com/briceburg/fdclose
+ - ligth gdb-server under a distinct name
+ - ptrace-jail
+ - ptrace-pledge
+
+Add regression tests.
+
+picotrace:
+
+ * add kernel support for overwriting syscall arguments, return values,
+   error value
+ * no new changes planned for currently (as of NetBSD 8.99.38) supported kernel
+   features
+
+coredumper:
+
+ * add an option to emit backtraces
+
+truss:
+
+ * decode the unhandled syscalls
+ * refactor the code and drop hardcoded, but not previsely specified length of
+   emitted report
+
+common:
+
+ * push more utility functions to common/
+ * rename utility functions with error checking to x* as it is a more natural
+   variation
