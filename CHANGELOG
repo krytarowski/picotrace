@@ -1,0 +1,13 @@
+20190526
+
+* picotrace: enhance spelling and formatting of the documentation.
+* picotrace: set close-on-exec on the output log.
+* picotrace: fix uninitialized memory read in copyinstr()
+* common: correct detection and distinguishing of events
+* coredumper: initial version.
+* truss: initial version.
+
+
+20190507
+
+* picotrace: initial version.
