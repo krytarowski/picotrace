@@ -105,20 +105,22 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		/* Shall not happen */
 		break;
 	case SYS_exit: /* 1 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_fork: /* 2 */
 		break;
 	case SYS_read: /* 3 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
 		    si->si_args[2]);
-		SPRINTF("%d, %s, %zu", si->si_args[0], s, si->si_args[2]);
+		SPRINTF("%d, %s, %zu", (int)si->si_args[0], s,
+		    (size_t)si->si_args[2]);
 		free(s);
 		break;
 	case SYS_write: /* 4 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
 		    si->si_args[2]);
-		SPRINTF("%d, %s, %zu", si->si_args[0], s, si->si_args[2]);
+		SPRINTF("%d, %s, %zu", (int)si->si_args[0], s,
+		    (size_t)si->si_args[2]);
 		free(s);
 		break;
 	case SYS_open: /* 5 */
@@ -161,7 +163,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		}
 		break;
 	case SYS_close: /* 6 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_compat_50_wait4: /* 7 */
 		break;
@@ -186,7 +188,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		free(s);
 		break;
 	case SYS_fchdir: /* 13 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_compat_50_mknod: /* 14 */
 		break;
@@ -201,7 +203,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		break;
 	case SYS_chown: /* 16 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
-		SPRINTF("%s, %d, %d", s, si->si_args[1], si->si_args[2]);
+		SPRINTF("%s, %d, %d", s, (int)si->si_args[1],
+		    (int)si->si_args[2]);
 		free(s);
 		break;
 	case SYS_break: /* 17 */
@@ -212,7 +215,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_43_olseek: /* 19 */
 		break;
 	case SYS_getpid: /* 20 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_compat_40_mount: /* 21 */
 		break;
@@ -257,7 +260,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 #undef check_flag
 		break;
 	case SYS_setuid: /* 23 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_getuid: /* 24 */
 		/* No arguments */
@@ -316,11 +319,12 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 #endif
 #undef check_flag
 		}
-		SPRINTF(", %d, %#p, %d", si->si_args[1], si->si_args[2],
-		    si->si_args[3]);
+		SPRINTF(", %d, %p, %d", (int)si->si_args[1],
+		    (void *)(intptr_t)si->si_args[2], (int)si->si_args[3]);
 		break;
 	case SYS_recvmsg: /* 27 */
-		SPRINTF("%d, %#p, 0", si->si_args[0], si->si_args[1]);
+		SPRINTF("%d, %p, 0", (int)si->si_args[0],
+		    (void *)(intptr_t)si->si_args[1]);
 #define check_flag(flag) if (si->si_args[2] & flag) SPRINTF("|" #flag)
 		check_flag(MSG_OOB);
 		check_flag(MSG_PEEK);
@@ -377,7 +381,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_43_lstat43: /* 40 */
 		break;
 	case SYS_dup: /* 41 */
-		SPRINTF("%d", si->si_args[0]);
+		SPRINTF("%d", (int)si->si_args[0]);
 		break;
 	case SYS_pipe: /* 42 */
 		break;
@@ -404,7 +408,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_13_sigaltstack13: /* 53 */
 		break;
 	case SYS_ioctl: /* 54 */
-		SPRINTF("%d, %lu, ...", si->si_args[0], si->si_args[1]);
+		SPRINTF("%d, %lu, ...", (int)si->si_args[0],
+		    (unsigned long)si->si_args[1]);
 		break;
 	case SYS_compat_12_oreboot: /* 55 */
 		break;
@@ -431,10 +436,10 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		} else if (ssize == 0) {
 			SPRINTF("\"\", ");
 		} else {
-			SPRINTF("%#p, ", (void *)(intptr_t)si->si_args[1]);
+			SPRINTF("%p, ", (void *)(intptr_t)si->si_args[1]);
 		}
 
-		SPRINTF("%zu", si->si_args[2]);
+		SPRINTF("%zu", (size_t)si->si_args[2]);
 		break;
 	case SYS_execve: /* 59 */
 		break;
@@ -457,10 +462,12 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_vadvise: /* 72 */
 		break;
 	case SYS_munmap: /* 73 */
-		SPRINTF("%#p, %zu", si->si_args[0], si->si_args[1]);
+		SPRINTF("%p, %zu", (void *)(intptr_t)si->si_args[0],
+		    (size_t)si->si_args[1]);
 		break;
 	case SYS_mprotect: /* 74 */
-		SPRINTF("%#p, %zu, ", si->si_args[0], si->si_args[1]);
+		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
+		    (size_t)si->si_args[1]);
 		if (si->si_args[2] & (PROT_EXEC|PROT_READ|PROT_WRITE)) {
 			SPRINTF("0");
 #define check_flag(flag) if (si->si_args[2] & flag) SPRINTF("|" #flag)
@@ -479,7 +486,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 #undef check_flag
 		break;
 	case SYS_madvise: /* 75 */
-		SPRINTF("%#p, %zu, ", si->si_args[0], si->si_args[1]);
+		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
+		    (size_t)si->si_args[1]);
 #define check_flag(flag) case flag: SPRINTF(#flag); break
 		switch (si->si_args[2]) {
 		check_flag(MADV_NORMAL);
@@ -517,7 +525,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_43_ogetdtablesize: /* 89 */
 		break;
 	case SYS_dup2: /* 90 */
-		SPRINTF("%d, %d", si->si_args[0], si->si_args[1]);
+		SPRINTF("%d, %d", (int)si->si_args[0], (int)si->si_args[1]);
 		break;
 	case SYS_fcntl: /* 92 */
 		break;
@@ -694,7 +702,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_12_getdirentries: /* 196 */
 		break;
 	case SYS_mmap: /* 197 */
-		SPRINTF("%#p, %zu, ", si->si_args[0], si->si_args[1]);
+		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
+		    (size_t)si->si_args[1]);
 		if (si->si_args[2] & (PROT_EXEC|PROT_READ|PROT_WRITE)) {
 			SPRINTF("0");
 #define check_flag(flag) if (si->si_args[2] & flag) SPRINTF("|" #flag)
@@ -732,12 +741,14 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 			        >> MAP_ALIGNMENT_SHIFT));
 		}
 		/* Do not print args[5] as it's pad. */
-		SPRINTF(", %d, %zd", si->si_args[4], si->si_args[6]);
+		SPRINTF(", %d, %zd", (int)si->si_args[4],
+		    (ssize_t)si->si_args[6]);
 		break;
 	case SYS___syscall: /* 198 */
 		break;
 	case SYS_lseek: /* 199 */
-		SPRINTF("%d, %zd, ", si->si_args[0], si->si_args[1]);
+		SPRINTF("%d, %zd, ", (int)si->si_args[0],
+		    (ssize_t)si->si_args[1]);
 #define check_flag(flag) case flag: SPRINTF(#flag); break
 		switch (si->si_args[2]) {
 		check_flag(SEEK_SET);
@@ -757,7 +768,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		else
 			v = NULL;
 		if (v == NULL) {
-			SPRINTF("%#p", si->si_args[0]);
+			SPRINTF("%p", (void *)(intptr_t)si->si_args[0]);
 		} else {
 			SPRINTF("{ ");
 			SPRINTF("%d", *(int *)v);
@@ -770,9 +781,11 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 			free(v);
 		}
 
-		SPRINTF(", %u, %#p, %#p, %#p, %zu", si->si_args[1],
-		    si->si_args[2], si->si_args[3], si->si_args[4],
-		    si->si_args[5]);
+		SPRINTF(", %u, %p, %p, %p, %zu", (unsigned)si->si_args[1],
+		    (void *)(intptr_t)si->si_args[2],
+		    (void *)(intptr_t)si->si_args[3],
+		    (void *)(intptr_t)si->si_args[4],
+		    (size_t)si->si_args[5]);
 		break;
 	case SYS_mlock: /* 203 */
 		break;
@@ -994,7 +1007,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS__lwp_getprivate: /* 316 */
 		break;
 	case SYS__lwp_setprivate: /* 317 */
-		SPRINTF("%#p", si->si_args[0]);
+		SPRINTF("%p", (void *)(intptr_t)si->si_args[0]);
 		break;
 	case SYS__lwp_kill: /* 318 */
 		break;
@@ -1049,7 +1062,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_uuidgen: /* 355 */
 		break;
 	case SYS_getvfsstat: /* 356 */
-		SPRINTF("%#p, %zu, ", si->si_args[0], si->si_args[1]);
+		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
+		    (size_t)si->si_args[1]);
 
 		SPRINTF("0");
 #define check_flag(flag) if (si->si_args[2] & flag) SPRINTF("|" #flag)
@@ -1126,7 +1140,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 #undef check_flag
 		break;
 	case SYS_fstatvfs1: /* 358 */
-		SPRINTF("%d, ", si->si_args[0]);
+		SPRINTF("%d, ", (int)si->si_args[0]);
 
 		s = get_statvfs(pid, (void *)(intptr_t)si->si_args[1]);
 		SPRINTF("%s, ", s);
@@ -1227,8 +1241,8 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	case SYS_compat_50___lstat30: /* 389 */
 		break;
 	case SYS___getdents30: /* 390 */
-		SPRINTF("%d, %#p, %zu", si->si_args[0], si->si_args[1],
-		    si->si_args[2]);
+		SPRINTF("%d, %p, %zu", (int)si->si_args[0],
+		    (void *)(intptr_t)si->si_args[1], (size_t)si->si_args[2]);
 		break;
 	case SYS_compat_30___fhstat30: /* 392 */
 		break;
@@ -1341,7 +1355,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		free(s);
 		break;
 	case SYS___fstat50: /* 440 */
-		SPRINTF("%d, ", si->si_args[0]);
+		SPRINTF("%d, ", (int)si->si_args[0]);
 
 		s = get_stat(pid, (void *)(intptr_t)si->si_args[1]);
 		SPRINTF("%s", s);
@@ -1480,7 +1494,7 @@ decode_retval(siginfo_t *si, char *buf, size_t len)
 
 	if (recognized) {
 		if (no_return) {
-			SPRINTF("no-return-value", name);
+			SPRINTF("no-return-value");
 		} else if (strcmp(rettype, "int") == 0) {
 			is64bit_rettype = false;
 		} else if (strcmp(rettype, "int32_t") == 0) {
@@ -1694,7 +1708,7 @@ get_stat(pid_t pid, struct stat *sb)
 	st = (struct stat *)copyin(pid, sb, sizeof(*sb));
 
 	if (st == NULL) {
-		asprintf(&s, "%#p", sb);
+		asprintf(&s, "%p", sb);
 		return s;
 	}
 
@@ -1722,7 +1736,7 @@ get_statvfs(pid_t pid, struct statvfs *sb)
 	st = (struct statvfs *)copyin(pid, sb, sizeof(*sb));
 
 	if (st == NULL) {
-		asprintf(&s, "%#p", sb);
+		asprintf(&s, "%p", sb);
 		return s;
 	}
 
@@ -1760,14 +1774,14 @@ get_sigset(pid_t pid, sigset_t *rset)
 	char *s;
 
 	if (rset == NULL) {
-		asprintf(&s, "%#p", rset);
+		asprintf(&s, "%p", rset);
 		return s;
 	}
 
 	set = (sigset_t *)copyin(pid, rset, sizeof(*rset));
 
 	if (set == NULL) {
-		asprintf(&s, "%#p", rset);
+		asprintf(&s, "%p", rset);
 		return s;
 	}
 
@@ -1809,14 +1823,14 @@ get_timespec(pid_t pid, struct timespec *tp)
 	char *s;
 
 	if (tp == NULL) {
-		asprintf(&s, "%#p", tp);
+		asprintf(&s, "%p", tp);
 		return s;
 	}
 
 	t = (struct timespec *)copyin(pid, tp, sizeof(*tp));
 
 	if (t == NULL) {
-		asprintf(&s, "%#p", tp);
+		asprintf(&s, "%p", tp);
 		return s;
 	}
 

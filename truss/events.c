@@ -414,7 +414,7 @@ events_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 		SPRINTF("%d", si->si_code);
 	}
 
-	SPRINTF(" si_addr=%#p si_trap=%d\n", si->si_addr, si->si_trap);
+	SPRINTF(" si_addr=%p si_trap=%d\n", si->si_addr, si->si_trap);
 
 	report(pid, lid, "%s", buf);
 
@@ -456,7 +456,7 @@ events_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 		SPRINTF(" pid=%d uid=%d", si->si_pid, si->si_uid);
 		/* FALLTHROUGH */
 	case SI_TIMER:
-		SPRINTF(" value=%#p", si->si_value.sival_ptr);
+		SPRINTF(" value=%p", si->si_value.sival_ptr);
 		break;
 	case SI_ASYNCIO:
 		SPRINTF(" si_fd=%d si_band=%#lx", si->si_fd, si->si_band);
@@ -855,11 +855,11 @@ read_elf_auxv(pid_t pid)
 			if (name)
 				SPRINTF("'%s'", name);
 			else
-				SPRINTF("%#" PRIx64, name);
+				SPRINTF("%#" PRIx64, aux->a_v);
 			free(name);
 			break;
 		default:
-			SPRINTF("UNKNOWN-TAG-%ld=%#lx", aux->a_type, aux->a_v);
+			SPRINTF("UNKNOWN-TAG-%d=%#lx", aux->a_type, aux->a_v);
 			break;
 		}
 		report(pid, lid, "%s", buf);

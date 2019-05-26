@@ -450,7 +450,9 @@ print_summary(void)
 
 	for (i = 0; i < SYS_NSYSENT; i++) {
 		if (stats[i].ncalls > 0) {
-			PRINT("%-20s%5jd.%09ld%11d%11d%11d%11d\n", syscall_info[i].name,
+			PRINT("%-20s%5jd.%09" PRIu64 "%11" PRIu64 "%11" PRIu64
+			    "%11" PRIu64 "%11" PRIu64 "\n",
+			    syscall_info[i].name,
 			    stats[i].ts.tv_sec, stats[i].ts.tv_nsec,
 			    stats[i].ncalls, stats[i].nerrors,
 			    stats[i].missed_sce, stats[i].missed_scx);
@@ -463,7 +465,8 @@ print_summary(void)
 	}
 
 	PRINT("%20s%15s%11s%11s%11s%11s\n", "", "-------------", "-------", "-------", "-------", "-------");
-	PRINT("%-20s%5jd.%09ld%11d%11d%11d%11d\n", "", total_ts.tv_sec, total_ts.tv_nsec,
+	PRINT("%-20s%5jd.%09ld%11" PRIu64 "%11" PRIu64 "%11" PRIu64
+	    "%11" PRIu64 "\n", "", total_ts.tv_sec, total_ts.tv_nsec,
 	    ncalls, nerrors, missed_sce, missed_scx);
 }
 
