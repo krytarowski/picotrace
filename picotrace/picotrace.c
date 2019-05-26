@@ -835,11 +835,11 @@ print_elf_auxv(pid_t pid)
 			if (name)
 				SPRINTF("'%s'", name);
 			else
-				SPRINTF("%#" PRIx64, name);
+				SPRINTF("%#" PRIx64, aux->a_v);
 			free(name);
 			break;
 		default:
-			SPRINTF("UNKNOWN-TAG-%ld=%#lx", aux->a_type, aux->a_v);
+			SPRINTF("UNKNOWN-TAG-%u=%#" PRIx64, aux->a_type, aux->a_v);
 			break;
 			break;
 		}
