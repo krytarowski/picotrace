@@ -1,48 +1,197 @@
 This repository contains various NetBSD tracers.
 
+All of the programs are designed to run on NetBSD 8.99.38 or newer.
+
+picotrace
+=========
+
+picotrace is designed to be a framework for other more advanced tracers, and an
+example of the canonical usage of ptrace(2). New features are not expected
+unless they reflect a new feature in the kernel.
+
+For historical reasons this repository is called picotrace, although it now
+contains other software as well.
+
+Usage:
+
+   picotrace [-i] [-o OUTPUT] [-p | command [arg ...]]
+
+Features:
+
+ * Attach to an already running process.
+ * Spawn a new process.
+ * Inherit forks/vforks/clones/etc.
+ * Report process id, process name, LWP id, event (syscall, exec, fork, etc).
+ * Log to stdout, as an option redirect log to a file.
+
+Example output (shortened):
+
+$ ./picotrace echo
+ 19964      0           echo ARGV[0] 'echo'
+ 19964      0           echo ENV[0] '_=./picotrace'
+ 19964      0           echo ENV[1] 'SSH_CONNECTION=192.168.0.157 65137 192.168.0.38 22'
+ 19964      0           echo ENV[2] 'PS1=! $(whoami)@$(hostname) $PWD $ '
+ [...]
+ 19964      0           echo AUXV[0] AT_PHDR=0x200040
+ [...]
+ 19964      0           echo AUXV[11] AT_STACKBASE=0x7f7ffffff000
+ 19964      0           echo AUXV[12] AT_SUN_EXECNAME='/bin/echo'
+ 19964      1           echo SCE mmap(0,0x8000,0x3,0x1002,0xffffffff,0,0)
+ 19964      1           echo SCX mmap = 0xf7ef7000
+ 19964      1           echo SCE open(0x7f7ff7c0d31f,0,0x7f7ff7e12768)
+ 19964      1           echo SCX open = 0 Err#2 ENOENT
+ 19964      1           echo SCE open(0x7f7fffffdfd8,0,0x1)
+ 19964      1           echo SCX open = 0 Err#2 ENOENT
+ 19964      1           echo SCE open(0x7f7fffffdfd8,0,0x7)
+ 19964      1           echo SCX open = 0x3
+ 19964      1           echo SCE __fstat50(0x3,0x7f7fffffded8)
+ 19964      1           echo SCX __fstat50 = 0
+ 19964      1           echo SCE mmap(0,0x1000,0x1,0x1,0x3,0,0)
+ 19964      1           echo SCX mmap = 0xf7ef6000
+ 19964      1           echo SCE munmap(0x7f7ff7ef6000,0x1000)
+ 19964      1           echo SCX munmap = 0
+ [...]
+ 19964      1           echo SCE _lwp_self()
+ 19964      1           echo SCX _lwp_self = 0x1
+ 19964      1           echo SCE __sigprocmask14(0x1,0x7f7fffffe600,0x7f7fffffe6f0)
+ 19964      1           echo SCX __sigprocmask14 = 0
+ 19964      1           echo SCE __sigprocmask14(0x3,0x7f7fffffe6f0,0)
+ 19964      1           echo SCX __sigprocmask14 = 0
+ 19964      1           echo SCE exit(0)
+ 19964      0           echo EXITED status=0
+
+
+NetBSD strace
+=============
+
+NetBSD strace is a diagnostic, debugging and instructional userspace utility.
+It is used to monitor and alter interactions between processes and the kernel,
+which include system calls, signal deliveries, and changes of process state.
+
+strace was released under a Berkeley-style license at the request of Paul
+Kranenburg. Paul was a long term NetBSD developer (pk@). This agreement was
+broken in 2018 as the strace developers relicensed the software to GPL + LGPL.
+
+This repository contains a fork called NetBSD strace that is developed
+as part of the picotrace repository and utilizes modern NetBSD kernel
+interfaces.
+
+Port of this program to NetBSD is still not merged with this repository.
+
+NetBSD truss
+============
+
+NetBSD truss is a diagnostic utility. It is used to monitor events in a traced
+process, including system calls, signal deliveries, and changes of state.
+
+This program is a reimplementation of FreeBSD truss. This code has been written
+scratch on the top of picotrace. This version of truss implements all of the
+functionality available in FreeBSD, whenever practical slightly expanding the
+set of features and changing the output format.
+
+Usage:
+
+   truss [-DHSacdefx] [-o OUTPUT] [-s #] [-p | command [arg ...]]
+
+Features:
+
+ * Attach to an already running process.
+ * Spawn a new process.
+ * Inherit forks/vforks/clones/etc.
+ * Report process id, process name, LWP id, event (syscall, exec, fork, etc).
+ * Decode syscall arguments and return values.
+ * Mode of counting syscalls only (-c).
+ * Log to stderr, as na option redirect log to a file.
+
+Example output (shortened):
+
+$ ./truss -dD -Hf echo
+15112      1 0.003865456 0.003865456 mmap(0x0, 32768, 0|PROT_READ|PROT_WRITE, 0|MAP_PRIVATE|MAP_ANONYMOUS, -1, 0)=  0x63572000
+15112      1 0.005013185 0.000670003 open("/etc/ld.so.conf", O_RDONLY)                 =  0 Err#2 ENOENT
+15112      1 0.005406121 0.000379247 open("/lib/libc.so.12", O_RDONLY)                 =  0x3
+15112      1 0.005818753 0.000400130 __fstat50(3, { dev=0, mode="-r--r--r-- ", ino=8455174, nlink=1, uid=0, gid=0, rdev=-1, atime=1559125364.903678308, mtime=1557246297.000000000, ctime=1557541071.458868862, blksize=16384, blocks=4480})=  0
+15112      1 0.005972198 0.000140734 mmap(0x0, 4096, 0|PROT_READ, 0|MAP_SHARED, 3, 0)  =  0x63571000
+15112      1 0.006171529 0.000187667 munmap(0x746763571000, 4096)                      =  0
+15112      1 0.006312961 0.000129628 mmap(0x0, 6373376, 0|PROT_EXEC|PROT_READ, 0|MAP_PRIVATE|MAP_ALIGNED(0x15), 3, 0)=  0x62e00000
+[...]
+15112      1 0.038884833 0.000163362 _lwp_self()                                       =  0x1
+15112      1 0.039201012 0.000305284 __sigprocmask14(SIG_BLOCK, 0|HUP|INT|QUIT|ILL|ABRT|EMT|FPE|KILL|BUS|SEGV|SYS|PIPE|ALRM|TERM|URG|STOP|TSTP|CONT|CHLD|TTIN|TTOU|IO|XCPU|XFSZ|VTALRM|PROF|WINCH|INFO|USR1|USR2|PWR|RTMIN|RTMIN+1|RTMIN+2|RTMIN+3|RTMIN+4|RTMIN+5|RTMIN+6|RTMIN+7|RTMIN+8|RTMIN+9|RTMIN+10|RTMIN+11|RTMIN+12|RTMIN+13|RTMIN+14|RTMIN+15|RTMIN+16|RTMIN+17|RTMIN+18|RTMIN+19|RTMIN+20|RTMIN+21|RTMIN+22|RTMIN+23|RTMIN+24|RTMIN+25|RTMIN+26|RTMIN+27|RTMIN+28|RTMIN+29|RTMAX, 0)=  0
+15112      1 0.039435125 0.000221960 __sigprocmask14(SIG_SETMASK, 0, 0x0)              =  0
+15112      1 0.039609593 0.000163223 _lwp_self()                                       =  0x1
+15112      1 0.039927029 0.000306680 __sigprocmask14(SIG_BLOCK, 0|HUP|INT|QUIT|ILL|ABRT|EMT|FPE|KILL|BUS|SEGV|SYS|PIPE|ALRM|TERM|URG|STOP|TSTP|CONT|CHLD|TTIN|TTOU|IO|XCPU|XFSZ|VTALRM|PROF|WINCH|INFO|USR1|USR2|PWR|RTMIN|RTMIN+1|RTMIN+2|RTMIN+3|RTMIN+4|RTMIN+5|RTMIN+6|RTMIN+7|RTMIN+8|RTMIN+9|RTMIN+10|RTMIN+11|RTMIN+12|RTMIN+13|RTMIN+14|RTMIN+15|RTMIN+16|RTMIN+17|RTMIN+18|RTMIN+19|RTMIN+20|RTMIN+21|RTMIN+22|RTMIN+23|RTMIN+24|RTMIN+25|RTMIN+26|RTMIN+27|RTMIN+28|RTMIN+29|RTMAX, 0)=  0
+15112      1 0.040158139 0.000218119 __sigprocmask14(SIG_SETMASK, 0, 0x0)              =  0
+15112      0 0.041297976 0.001128522 process exit, rval = 0
+
+$ ./truss -c echo
+syscall                     seconds      calls     errors missed-sce missed-scx
+write                   0.000085558          1          0          0          0
+open                    0.001012234          9          1          0          0
+close                   0.000335666          8          0          0          0
+readlink                0.000119571          1          1          0          0
+munmap                  0.000669024          8          0          0          0
+mprotect                0.000410607          5          0          0          0
+madvise                 0.000033175          1          0          0          0
+mmap                    0.001878775         38          0          0          0
+lseek                   0.000073965          2          0          0          0
+__sysctl                0.014389454          3          0          0          0
+__sigprocmask14         0.001045269         14          0          0          0
+issetugid               0.000107628          2          0          0          0
+_lwp_self               0.000268546          7          0          0          0
+_lwp_setprivate         0.000032896          1          0          0          0
+fstatvfs1               0.000103437          1          0          0          0
+__getdents30            0.000161687          2          0          0          0
+__clock_gettime50       0.000226779          3          0          0          0
+__fstat50               0.000638992          8          0          0          0
+                      -------------    -------    -------    -------    -------
+                        0.021593263        114          2          0          0
+
+coredumper
+==========
+
+coredumper traces specified processes and dumps core on crashes. Some programs
+handle program crashes with signal handlers, preventing core(5) files from being
+generated. coredumper bypasses their signal handlers and for each crash dumps
+core, without changing the capturing mechanism in traced processes.
+
+Usage:
+
+   coredumper [-c CORENAME] [-i] [-p | command [arg ...]]
+
+Features:
+
+ * Attach to an already running process.
+ * Spawn a new process.
+ * Inherit forks/vforks/clones/etc.
+ * Optional specification of a filename where to dump a core(5) file.
+
+INSTALL
+=======
+
+Releases of the picotrace repository are shipped with pkgsrc as devel/picotrace.
+This package contains all of the programs (picotrace, NetBSD truss, coredumper
+and others).
+
+None of the current programs in this repository requires third party software.
+Future programs are planned to contain external dependencies for functionality
+that is not practical to reinvent.
+
+The build rules use native NetBSD makefiles and in order to build the programs
+call make(1) either in the top level directory or a directory of a selected
+tool:
+
+$ make
+
 HISTORY
+=======
 
-1. The original tracer was picotrace released on 2019-05-07.
+ * 2019-05-29 Minix mdb was imported as minixdb.
+ * 2019-05-23 The FreeBSD truss has been rewritten from scratch for NetBSD.
+ * 2019-05-13 FreeBSD truss (SVN r. 347514) was imported.
+ * 2019-05-12 New utility coredumper was imported.
+ * 2019-05-08 The last BSD-3-clause version of strace was imported.
+ * 2019-05-07 The first public version of picotrace was released.
 
-> picotrace enables syscall trace logging for the specified processes.
-> 
-> The tracer uses the ptrace(2) system call to perform the tracing.
-> 
-> The picotrace program implements bare functionality by design.  It has
-> no pretty printing of data structures or interpretation of numerical arguments
-> to their corresponding syscalls.
->
-> picotrace is designed to be a framework for other more advanced tracers,
-> and to illustrate canonical usage of the ptrace(2).  New features are
-> not expected unless they reflect a new feature in the kernel.
+AUTHORS
+=======
 
-For historical reasons this repository is called picotrace, although
-it now contains more software programs gathered in a single repository.
-
-2. On 2019-05-08 the last BSD-3-clause version of strace was imported.
-
-> strace was released under a Berkeley-style license at the
-> request of Paul Kranenburg.
->
-> Paul was a long term NetBSD developer (pk@).
->
-> This agreement was broken in 2018 as the strace developers
-> relicensed the software to GPL + LGPL.
-
-Goals of the fork called 'NetBSD strace':
-
- - Develop strace as a part of the picotrace repository.
- - Utilize modern NetBSD kernel interfaces.
-
-3. On 2019-05-12 coredumper was added.
-
-> coredumper traces specified processes and dumps core for crashes.
-> Certain programs handle program crashes with signal handlers, preventing
-> core(5) files from being generated. coredumper bypasses their signal
-> handlers and for each crash dumps core, without changing capturing mechanism
-> in traced processes.
-
-4. On 2019-05-13 FreeBSD truss (SVN r. 347514) was imported
-
-Soon later on 2019-05-23 it was replaced with a new homegrown version
-dedicated for the NetBSD Operating System.
+Kamil Rytarowski <kamil @ NetBSD . org>
