@@ -110,7 +110,7 @@ picotrace_main(int argc, char **argv)
 			output = efopen(optarg, "we");
 			break;
 		case 'p':
-			pid = estrtoi(optarg, 0, 0, INTMAX_MAX);
+			pid = (pid_t)estrtoi(optarg, 0, 0, INT_MAX);
 			break;
 		case '?':
 		default:
