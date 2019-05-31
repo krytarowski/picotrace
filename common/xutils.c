@@ -47,7 +47,7 @@
 #include <unistd.h>
 
 int
-trace_thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
+xthrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 {
 
 	switch (thrd_create(thr, func, arg)) {
@@ -62,7 +62,7 @@ trace_thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 }
 
 int
-trace_thrd_detach(thrd_t thr)
+xthrd_detach(thrd_t thr)
 {
 
 	switch (thrd_detach(thr)) {
@@ -75,7 +75,7 @@ trace_thrd_detach(thrd_t thr)
 }
 
 int
-trace_mtx_init(mtx_t *mtx, int type)
+xmtx_init(mtx_t *mtx, int type)
 {
 
 	switch (mtx_init(mtx, type)) {
@@ -88,7 +88,7 @@ trace_mtx_init(mtx_t *mtx, int type)
 }
 
 int
-trace_mtx_lock(mtx_t *mtx)
+xmtx_lock(mtx_t *mtx)
 {
 
 	switch (mtx_lock(mtx)) {
@@ -101,7 +101,7 @@ trace_mtx_lock(mtx_t *mtx)
 }
 
 int
-trace_mtx_unlock(mtx_t *mtx)
+xmtx_unlock(mtx_t *mtx)
 {
 
 	switch (mtx_unlock(mtx)) {
@@ -114,7 +114,7 @@ trace_mtx_unlock(mtx_t *mtx)
 }
 
 int
-trace_cnd_init(cnd_t *cond)
+xcnd_init(cnd_t *cond)
 {
 
 	switch (cnd_init(cond)) {
@@ -127,7 +127,7 @@ trace_cnd_init(cnd_t *cond)
 }
 
 int
-trace_cnd_signal(cnd_t *cond)
+xcnd_signal(cnd_t *cond)
 {
 
 	switch (cnd_signal(cond)) {
@@ -140,7 +140,7 @@ trace_cnd_signal(cnd_t *cond)
 }
 
 int
-trace_cnd_wait(cnd_t *cond, mtx_t *mtx)
+xcnd_wait(cnd_t *cond, mtx_t *mtx)
 {
 
 	switch (cnd_wait(cond, mtx)) {
@@ -153,7 +153,7 @@ trace_cnd_wait(cnd_t *cond, mtx_t *mtx)
 }
 
 pid_t
-trace_waitpid(pid_t pid, int *status, int options)
+xwaitpid(pid_t pid, int *status, int options)
 {
 	pid_t wpid;
 
@@ -169,7 +169,7 @@ trace_waitpid(pid_t pid, int *status, int options)
 }
 
 int
-trace_ptrace(int request, pid_t pid, void *addr, int data)
+xptrace(int request, pid_t pid, void *addr, int data)
 {
 	int rv;
 
@@ -181,7 +181,7 @@ trace_ptrace(int request, pid_t pid, void *addr, int data)
 }
 
 pid_t
-trace_fork(void)
+xfork(void)
 {
 	pid_t pid;
 
@@ -194,7 +194,7 @@ trace_fork(void)
 }
 
 int
-trace_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+xsysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
         const void *newp, size_t newlen)
 {
 	int rv;
@@ -206,7 +206,7 @@ trace_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
 }
 
 int
-trace_snprintf(char * __restrict ret, size_t size,
+xsnprintf(char * __restrict ret, size_t size,
           const char * __restrict format, ...)
 {
 	int rv;
@@ -219,7 +219,7 @@ trace_snprintf(char * __restrict ret, size_t size,
 }
 
 int
-trace_timespec_get(struct timespec *ts, int base)
+xtimespec_get(struct timespec *ts, int base)
 {
 
 	if (timespec_get(ts, base) == 0)

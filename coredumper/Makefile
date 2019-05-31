@@ -6,7 +6,7 @@ SRCS+=	coredumper.c
 
 # Common files, shared between tracers.
 .PATH:	../common
-SRCS+=	children.c trace.c trace_utils.c
+SRCS+=	children.c trace.c xutils.c
 
 CPPFLAGS+=	-I../common
 

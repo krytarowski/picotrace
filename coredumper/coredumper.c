@@ -43,7 +43,7 @@
 
 #include "children.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 static void usage(void) __dead;
 static void attach(pid_t);
@@ -99,7 +99,7 @@ coredumper_main(int argc, char **argv)
 	if (pid > 0 && argc > 0)
 		usage();
 
-	trace_mtx_init(&mtx, mtx_plain);
+	xmtx_init(&mtx, mtx_plain);
 	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
@@ -137,7 +137,7 @@ coredumper_startup(pid_t pid)
 #endif
 	}
 
-	trace_ptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
+	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
 }
 
 static void
@@ -146,7 +146,7 @@ coredumper_unstop(pid_t pid)
 	ptrace_siginfo_t psi;
 	int signo;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	signo = psi.psi_siginfo.si_signo;
 
 	if (signo == SIGTRAP) {
@@ -173,7 +173,7 @@ coredumper_unstop(pid_t pid)
 		}
 	}
 
-	trace_ptrace(PT_CONTINUE, pid, (void *)1, signo);
+	xptrace(PT_CONTINUE, pid, (void *)1, signo);
 }
 
 static void
@@ -235,7 +235,7 @@ coredumper_forked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -256,7 +256,7 @@ coredumper_vforked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -291,7 +291,7 @@ static void
 coredumper_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
 
-	trace_ptrace(PT_DUMPCORE, pid, corename, corelen);
+	xptrace(PT_DUMPCORE, pid, corename, corelen);
 }
 
 static void
@@ -300,7 +300,7 @@ coredumper_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	/* If something stopped the traceee, detach. */
 	if (si->si_signo == SIGSTOP) {
-		trace_ptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
+		xptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
 	}
 }
 
@@ -320,9 +320,9 @@ attach(pid_t pid)
 	ptrace_siginfo_t psi;
 	int status;
 
-	trace_ptrace(PT_ATTACH, pid, NULL, 0);
+	xptrace(PT_ATTACH, pid, NULL, 0);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,
@@ -333,9 +333,9 @@ attach(pid_t pid)
 		    "waitpid(%d) returned unexpected signal %s", pid,
 		    signalname(WSTOPSIG(status)));
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	psi.psi_siginfo.si_signo = 0;
-	trace_ptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
 
 	launch_worker(pid);
 }
@@ -346,10 +346,10 @@ spawn(char **argv)
 	pid_t child;
 	int status;
 
-	child = trace_fork();
+	child = xfork();
 
 	if (child == 0) {
-		trace_ptrace(PT_TRACE_ME, 0, NULL, 0);
+		xptrace(PT_TRACE_ME, 0, NULL, 0);
 
 		execvp(argv[0], argv);
 
@@ -358,7 +358,7 @@ spawn(char **argv)
 		/* NOTREACHABLE */
 	}
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,
@@ -379,9 +379,9 @@ detach_child(pid_t pid)
 
 	kill(pid, SIGSTOP);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
-	trace_ptrace(PT_DETACH, pid, (void *)1, 0);
+	xptrace(PT_DETACH, pid, (void *)1, 0);
 }
 
 static void

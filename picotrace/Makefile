@@ -6,7 +6,7 @@ SRCS+=	picotrace.c
 
 # Common files, shared between tracers.
 .PATH:	../common
-SRCS+=	children.c misc.c trace.c trace_utils.c
+SRCS+=	children.c misc.c trace.c xutils.c
 
 CPPFLAGS+=	-I../common
 

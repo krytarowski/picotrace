@@ -57,7 +57,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 #include "events.h"
 
@@ -75,7 +75,7 @@ static size_t string_max_size;				/* -s */
 #define SPRINTF(a,...)							\
 	do {								\
 		if (n < len)						\
-			n += trace_snprintf(buf + n, len - n,		\
+			n += xsnprintf(buf + n, len - n,		\
 				(a), ## __VA_ARGS__);			\
 	} while (0)
 
@@ -1624,7 +1624,7 @@ copyinstr(pid_t pid, void *offs, size_t maxlen)
 	}
 
 	if (!canonical && n == 0) {
-		trace_snprintf(buf, buflen, "???");
+		xsnprintf(buf, buflen, "???");
 		return buf;
 	}
 
@@ -1636,7 +1636,7 @@ copyinstr(pid_t pid, void *offs, size_t maxlen)
 	m = strnvisx(s + 1, max * (sizeof("\\0123") - 1), buf, n,
 	             VIS_CSTYLE | VIS_OCTAL | VIS_TAB | VIS_NL | VIS_DQ);
 
-	trace_snprintf(s + m + 1, buflen - m - 1,
+	xsnprintf(s + m + 1, buflen - m - 1,
 	    (canonical || maxlen != SIZE_MAX) ? "\"" : "\"...");
 
 	free(buf);

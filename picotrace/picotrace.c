@@ -45,7 +45,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 static void usage(void) __dead;
 static void attach(pid_t);
@@ -83,7 +83,7 @@ static mtx_t mtx;
 #define SPRINTF(a,...)							\
 	do {								\
 		if (n < sizeof(buf))					\
-			n += trace_snprintf(buf + n, sizeof(buf) - n ,	\
+			n += xsnprintf(buf + n, sizeof(buf) - n ,	\
 				(a), ## __VA_ARGS__);			\
 	} while (0)
 
@@ -129,7 +129,7 @@ picotrace_main(int argc, char **argv)
 	if (pid > 0 && argc > 0)
 		usage();
 
-	trace_mtx_init(&mtx, mtx_plain);
+	xmtx_init(&mtx, mtx_plain);
 	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
@@ -174,7 +174,7 @@ picotrace_startup(pid_t pid)
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
 	pe.pe_set_event |= PTRACE_LWP_EXIT;
 
-	trace_ptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
+	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
 
 	print_argv(pid);
 	print_env(pid);
@@ -187,7 +187,7 @@ picotrace_unstop(pid_t pid)
 	ptrace_siginfo_t psi;
 	int signo;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	signo = psi.psi_siginfo.si_signo;
 
 	if (signo == SIGTRAP) {
@@ -214,7 +214,7 @@ picotrace_unstop(pid_t pid)
 		}
 	}
 
-	trace_ptrace(PT_SYSCALL, pid, (void *)1, signo);
+	xptrace(PT_SYSCALL, pid, (void *)1, signo);
 }
 
 static void
@@ -437,7 +437,7 @@ picotrace_forked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -460,7 +460,7 @@ picotrace_vforked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -555,7 +555,7 @@ picotrace_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 		PRINT("%s\n", buf);
 
-		trace_ptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
+		xptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
 	}
 }
 
@@ -575,9 +575,9 @@ attach(pid_t pid)
 	ptrace_siginfo_t psi;
 	int status;
 
-	trace_ptrace(PT_ATTACH, pid, NULL, 0);
+	xptrace(PT_ATTACH, pid, NULL, 0);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,
@@ -588,9 +588,9 @@ attach(pid_t pid)
 		    "waitpid(%d) returned unexpected signal %s", pid,
 		    signalname(WSTOPSIG(status)));
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	psi.psi_siginfo.si_signo = 0;
-	trace_ptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
 
 	launch_worker(pid);
 }
@@ -601,10 +601,10 @@ spawn(char **argv)
 	pid_t child;
 	int status;
 
-	child = trace_fork();
+	child = xfork();
 
 	if (child == 0) {
-		trace_ptrace(PT_TRACE_ME, 0, NULL, 0);
+		xptrace(PT_TRACE_ME, 0, NULL, 0);
 
 		execvp(argv[0], argv);
 
@@ -613,7 +613,7 @@ spawn(char **argv)
 		/* NOTREACHABLE */
 	}
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,
@@ -647,16 +647,16 @@ print_argv(pid_t pid)
 
 	len = sizeof(argc);
 
-        trace_sysctl(mib, __arraycount(mib), &argc, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), &argc, &len, NULL, 0);
 
 	mib[3] = KERN_PROC_ARGV;
 	len = 0;
 
-        trace_sysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
 
 	argv = emalloc(len);
 
-        trace_sysctl(mib, __arraycount(mib), argv, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), argv, &len, NULL, 0);
 
 	p = argv;
 	for (i = 0; i < argc; i++) {
@@ -688,16 +688,16 @@ print_env(pid_t pid)
 
 	len = sizeof(envc);
 
-        trace_sysctl(mib, __arraycount(mib), &envc, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), &envc, &len, NULL, 0);
 
 	mib[3] = KERN_PROC_ENV;
 	len = 0;
 
-        trace_sysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
 
 	envv = emalloc(len);
 
-        trace_sysctl(mib, __arraycount(mib), envv, &len, NULL, 0);
+        xsysctl(mib, __arraycount(mib), envv, &len, NULL, 0);
 
 	p = envv;
 	for (i = 0; i < envc; i++) {
@@ -729,7 +729,7 @@ print_elf_auxv(pid_t pid)
 	pio.piod_addr = vector;
 	pio.piod_len = sizeof(buf);
 
-	trace_ptrace(PT_IO, pid, &pio, 0);
+	xptrace(PT_IO, pid, &pio, 0);
 
 	for (aux = (const AuxInfo *)vector; aux->a_type != AT_NULL; ++aux) {
 		n = 0; /* used by SNPRINTF */
@@ -865,7 +865,7 @@ resolve_child_name(pid_t pid, char *child_name, size_t maxlen)
 	 * There must be used an intermediate buffer with sufficient length as
 	 * otherwise the sysctl(3) call will reject the operation.
 	 */
-	trace_sysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
+	xsysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
 
 	estrlcpy(child_name, basename(buf), maxlen);
 }
@@ -959,9 +959,9 @@ detach_child(pid_t pid)
 
 	kill(pid, SIGSTOP);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
-	trace_ptrace(PT_DETACH, pid, (void *)1, 0);
+	xptrace(PT_DETACH, pid, (void *)1, 0);
 }
 
 static void

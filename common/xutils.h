@@ -49,20 +49,20 @@
 #include <threads.h>
 #include <unistd.h>
 
-int trace_thrd_create(thrd_t *, thrd_start_t, void *);
-int trace_thrd_detach(thrd_t thr);
-int trace_mtx_init(mtx_t *, int);
-int trace_mtx_lock(mtx_t *);
-int trace_mtx_unlock(mtx_t *);
-int trace_cnd_init(cnd_t *c);
-int trace_cnd_signal(cnd_t *);
-int trace_cnd_wait(cnd_t *, mtx_t *);
-pid_t trace_waitpid(pid_t, int *, int);
-int trace_ptrace(int, pid_t, void *, int);
-pid_t trace_fork(void);
-int trace_sysctl(const int *, u_int, void *, size_t *, const void *, size_t);
-int trace_snprintf(char * __restrict, size_t, const char * __restrict, ...)
+int xthrd_create(thrd_t *, thrd_start_t, void *);
+int xthrd_detach(thrd_t thr);
+int xmtx_init(mtx_t *, int);
+int xmtx_lock(mtx_t *);
+int xmtx_unlock(mtx_t *);
+int xcnd_init(cnd_t *c);
+int xcnd_signal(cnd_t *);
+int xcnd_wait(cnd_t *, mtx_t *);
+pid_t xwaitpid(pid_t, int *, int);
+int xptrace(int, pid_t, void *, int);
+pid_t xfork(void);
+int xsysctl(const int *, u_int, void *, size_t *, const void *, size_t);
+int xsnprintf(char * __restrict, size_t, const char * __restrict, ...)
     __printflike(3,4);
-int trace_timespec_get(struct timespec *, int);
+int xtimespec_get(struct timespec *, int);
 
 #endif /* TRACE_UTILS_H */

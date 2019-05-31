@@ -45,7 +45,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 #include "truss.h"
 
@@ -157,9 +157,9 @@ attach(pid_t pid)
 	ptrace_siginfo_t psi;
 	int status;
 
-	trace_ptrace(PT_ATTACH, pid, NULL, 0);
+	xptrace(PT_ATTACH, pid, NULL, 0);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,
@@ -170,9 +170,9 @@ attach(pid_t pid)
 		    "waitpid(%d) returned unexpected signal %s", pid,
 		    signalname(WSTOPSIG(status)));
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	psi.psi_siginfo.si_signo = 0;
-	trace_ptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_SET_SIGINFO, pid, &psi, sizeof(psi));
 
 	launch_worker(pid);
 }
@@ -183,10 +183,10 @@ spawn(char **argv)
 	pid_t child;
 	int status;
 
-	child = trace_fork();
+	child = xfork();
 
 	if (child == 0) {
-		trace_ptrace(PT_TRACE_ME, 0, NULL, 0);
+		xptrace(PT_TRACE_ME, 0, NULL, 0);
 
 		execvp(argv[0], argv);
 
@@ -195,7 +195,7 @@ spawn(char **argv)
 		/* NOTREACHABLE */
 	}
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status))
 		errx(EXIT_FAILURE,

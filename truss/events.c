@@ -47,7 +47,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 #include "truss.h"
 
@@ -74,7 +74,7 @@ static FILE *output;				/* -o */
 #define SPRINTF(a,...)							\
 	do {								\
 		if (n < sizeof(buf))					\
-			n += trace_snprintf(buf + n, sizeof(buf) - n,	\
+			n += xsnprintf(buf + n, sizeof(buf) - n,	\
 				(a), ## __VA_ARGS__);			\
 	} while (0)
 
@@ -111,7 +111,7 @@ events_main(FILE *out, int m, size_t s)
 
 	setup_ops();
 
-	trace_mtx_init(&mtx, mtx_plain);
+	xmtx_init(&mtx, mtx_plain);
 	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
@@ -120,7 +120,7 @@ events_main(FILE *out, int m, size_t s)
 
 	signal(SIGINFO, siginfo_handler);
 
-	trace_timespec_get(&start_ts, TIME_UTC);
+	xtimespec_get(&start_ts, TIME_UTC);
 
 	previous_ts = start_ts;
 }
@@ -155,7 +155,7 @@ events_startup(pid_t pid)
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
 	pe.pe_set_event |= PTRACE_LWP_EXIT;
 
-	trace_ptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
+	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
 }
 
 static void
@@ -164,7 +164,7 @@ events_unstop(pid_t pid)
 	ptrace_siginfo_t psi;
 	int signo;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	signo = psi.psi_siginfo.si_signo;
 
 	if (signo == SIGTRAP) {
@@ -191,7 +191,7 @@ events_unstop(pid_t pid)
 		}
 	}
 
-	trace_ptrace(PT_SYSCALL, pid, (void *)1, signo);
+	xptrace(PT_SYSCALL, pid, (void *)1, signo);
 }
 
 static void
@@ -203,7 +203,7 @@ events_continued(pid_t pid)
 
 	report(pid, 0, "process continued");
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -231,7 +231,7 @@ events_signaled(pid_t pid, int sig, int core)
 
 	report(pid, 0, "%s", buf);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -240,7 +240,7 @@ events_exited(pid_t pid, int status)
 
 	report(pid, 0, "process exit, rval = %d", status);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -295,7 +295,7 @@ events_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	report(pid, lid, "%s", buf);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -311,7 +311,7 @@ events_exec(pid_t pid, lwpid_t lid)
 	if (mode & MODE_EXEC_AUXV)
 		read_elf_auxv(pid);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -321,7 +321,7 @@ events_forked(pid_t pid, lwpid_t lid, pid_t child)
 
 	assert(mode & MODE_INHERIT);
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -336,7 +336,7 @@ events_forked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -346,7 +346,7 @@ events_vforked(pid_t pid, lwpid_t lid, pid_t child)
 
 	assert(mode & MODE_INHERIT);
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -361,7 +361,7 @@ events_vforked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -370,7 +370,7 @@ events_vforkdone(pid_t pid, lwpid_t lid, pid_t child)
 
 	assert(mode & MODE_INHERIT);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -379,7 +379,7 @@ events_lwpcreated(pid_t pid, lwpid_t lid, lwpid_t lwp)
 
 	report(pid, lid, "<new thread %d>", lwp);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -388,7 +388,7 @@ events_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 
 	report(pid, lid, "<thread %d exited>", lwp);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -418,7 +418,7 @@ events_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	report(pid, lid, "%s", buf);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -469,7 +469,7 @@ events_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	report(pid, lid, "%s", buf);
 
-	trace_timespec_get(&previous_ts, TIME_UTC);
+	xtimespec_get(&previous_ts, TIME_UTC);
 }
 
 static void
@@ -509,7 +509,7 @@ report(pid_t pid, lwpid_t lwp, char *format, ...)
 
 	n = 0;
 
-	trace_timespec_get(&now_ts, TIME_UTC);
+	xtimespec_get(&now_ts, TIME_UTC);
 
 	if (mode & MODE_INHERIT) {
 		SPRINTF("%5d %s ", pid, pid_ctx->name);
@@ -556,7 +556,7 @@ resolve_child_name(pid_t pid, char *child_name, size_t maxlen)
 	 * There must be used an intermediate buffer with sufficient length as
 	 * otherwise the sysctl(3) call will reject the operation.
 	 */
-	trace_sysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
+	xsysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
 
 	estrlcpy(child_name, basename(buf), maxlen);
 }
@@ -671,16 +671,16 @@ read_argv(pid_t pid)
 
 	len = sizeof(argc);
 
-	trace_sysctl(mib, __arraycount(mib), &argc, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), &argc, &len, NULL, 0);
 
 	mib[3] = KERN_PROC_ARGV;
 	len = 0;
 
-	trace_sysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
 
 	argv = emalloc(len);
 
-	trace_sysctl(mib, __arraycount(mib), argv, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), argv, &len, NULL, 0);
 
 	p = argv;
 	for (i = 0; i < argc; i++) {
@@ -712,16 +712,16 @@ read_env(pid_t pid)
 
 	len = sizeof(envc);
 
-	trace_sysctl(mib, __arraycount(mib), &envc, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), &envc, &len, NULL, 0);
 
 	mib[3] = KERN_PROC_ENV;
 	len = 0;
 
-	trace_sysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), NULL, &len, NULL, 0);
 
 	envv = emalloc(len);
 
-	trace_sysctl(mib, __arraycount(mib), envv, &len, NULL, 0);
+	xsysctl(mib, __arraycount(mib), envv, &len, NULL, 0);
 
 	p = envv;
 	for (i = 0; i < envc; i++) {
@@ -753,7 +753,7 @@ read_elf_auxv(pid_t pid)
 	pio.piod_addr = vector;
 	pio.piod_len = sizeof(buf);
 
-	trace_ptrace(PT_IO, pid, &pio, 0);
+	xptrace(PT_IO, pid, &pio, 0);
 
 	for (aux = (const AuxInfo *)vector; aux->a_type != AT_NULL; ++aux) {
 		n = 0; /* used by SNPRINTF */
@@ -931,9 +931,9 @@ detach_child(pid_t pid)
 
 	kill(pid, SIGSTOP);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
-	trace_ptrace(PT_DETACH, pid, (void *)1, 0);
+	xptrace(PT_DETACH, pid, (void *)1, 0);
 }
 
 static void

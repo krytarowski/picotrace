@@ -47,7 +47,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 #include "truss.h"
 
@@ -110,7 +110,7 @@ count_main(FILE *out, int m)
 
 	setup_ops();
 
-	trace_mtx_init(&mtx, mtx_plain);
+	xmtx_init(&mtx, mtx_plain);
 	pid_tree = children_tree_init();
 
 	signal(SIGINT, signal_handler);
@@ -119,7 +119,7 @@ count_main(FILE *out, int m)
 
 	signal(SIGINFO, siginfo_handler);
 
-	trace_timespec_get(&start_ts, TIME_UTC);
+	xtimespec_get(&start_ts, TIME_UTC);
 
 	stats = ecalloc(SYS_NSYSENT, sizeof(struct syscall_stats));
 }
@@ -152,7 +152,7 @@ count_startup(pid_t pid)
 		children_tree_insert(pid_ctx->lwp_tree, pl.pl_lwpid, lwp_ctx);
 	}
 
-	trace_timespec_get(&pid_ctx->startup_ts, TIME_UTC);
+	xtimespec_get(&pid_ctx->startup_ts, TIME_UTC);
 
 	mtx_lock(&mtx);
 	children_tree_insert(pid_tree, pid, pid_ctx);
@@ -169,7 +169,7 @@ count_startup(pid_t pid)
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
 	pe.pe_set_event |= PTRACE_LWP_EXIT;
 
-	trace_ptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
+	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
 }
 
 static void
@@ -178,7 +178,7 @@ count_unstop(pid_t pid)
 	ptrace_siginfo_t psi;
 	int signo;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 	signo = psi.psi_siginfo.si_signo;
 
 	if (signo == SIGTRAP) {
@@ -205,7 +205,7 @@ count_unstop(pid_t pid)
 		}
 	}
 
-	trace_ptrace(PT_SYSCALL, pid, (void *)1, signo);
+	xptrace(PT_SYSCALL, pid, (void *)1, signo);
 }
 
 static void
@@ -268,7 +268,7 @@ count_syscallentry(pid_t pid, lwpid_t lid, siginfo_t *si)
 		children_tree_insert(pid_ctx->lwp_tree, lid, lwp_ctx);
 	}
 
-	trace_timespec_get(&lwp_ctx->sce_ts, TIME_UTC);
+	xtimespec_get(&lwp_ctx->sce_ts, TIME_UTC);
 
 	if (lwp_ctx->current_syscall != -1) {
 		s = &stats[si->si_sysnum];
@@ -314,7 +314,7 @@ count_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 		return;
 	}
 
-	trace_timespec_get(&lwp_ctx->scx_ts, TIME_UTC);
+	xtimespec_get(&lwp_ctx->scx_ts, TIME_UTC);
 
 	s = &stats[si->si_sysnum];
 
@@ -338,7 +338,7 @@ count_forked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -359,7 +359,7 @@ count_vforked(pid_t pid, lwpid_t lid, pid_t child)
 {
 	int status;
 
-	trace_waitpid(child, &status, 0);
+	xwaitpid(child, &status, 0);
 
 	if (!WIFSTOPPED(status)) {
 		warnx("waitpid(%d) returned non-stopped child", child);
@@ -488,7 +488,7 @@ resolve_child_name(pid_t pid, char *child_name, size_t maxlen)
 	 * There must be used an intermediate buffer with sufficient length as
 	 * otherwise the sysctl(3) call will reject the operation.
 	 */
-	trace_sysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
+	xsysctl(mib, __arraycount(mib), buf, &buflen, NULL, 0);
 
 	estrlcpy(child_name, basename(buf), maxlen);
 }
@@ -500,9 +500,9 @@ detach_child(pid_t pid)
 
 	kill(pid, SIGSTOP);
 
-	trace_waitpid(pid, &status, 0);
+	xwaitpid(pid, &status, 0);
 
-	trace_ptrace(PT_DETACH, pid, (void *)1, 0);
+	xptrace(PT_DETACH, pid, (void *)1, 0);
 }
 
 static void
@@ -539,7 +539,7 @@ siginfo_handler(int dummy)
 {	
 	struct timespec diff_ts;
 
-	trace_timespec_get(&now_ts, TIME_UTC);
+	xtimespec_get(&now_ts, TIME_UTC);
 
 	timespecsub(&now_ts, &start_ts, &diff_ts);
 

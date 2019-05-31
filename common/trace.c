@@ -38,7 +38,7 @@
 #include <util.h>
 
 #include "trace.h"
-#include "trace_utils.h"
+#include "xutils.h"
 
 static int worker(void *);
 static void monitor_sigtrap(pid_t);
@@ -80,15 +80,15 @@ main(int argc, char **argv)
 
 	p = getprogname();
 
-	trace_cnd_init(&cnd);
-	trace_mtx_init(&mtx, mtx_plain);
+	xcnd_init(&cnd);
+	xmtx_init(&mtx, mtx_plain);
 
 	TRACE_MAIN(argc, argv);
 
-	trace_mtx_lock(&mtx);
+	xmtx_lock(&mtx);
 	while (workers > 0)
-		trace_cnd_wait(&cnd, &mtx);
-	trace_mtx_unlock(&mtx);
+		xcnd_wait(&cnd, &mtx);
+	xmtx_unlock(&mtx);
 
 	TRACE_END();
 
@@ -100,9 +100,9 @@ launch_worker(pid_t pid)
 {
 	thrd_t t;
 
-	trace_mtx_lock(&mtx);
+	xmtx_lock(&mtx);
 	++workers;
-	trace_mtx_unlock(&mtx);
+	xmtx_unlock(&mtx);
 
 	/* The t thread is not waited as the thread will perform selfdetach. */
 	thrd_create(&t, worker, (void *)(intptr_t)pid);
@@ -125,7 +125,7 @@ worker(void *arg)
 	while (true) {
 		TRACE_UNSTOP(pid);
 
-		trace_waitpid(pid, &status, 0);
+		xwaitpid(pid, &status, 0);
 
 		/* Tracee terminating event */
 		if (WIFSTOPPED(status)) {
@@ -166,13 +166,13 @@ worker(void *arg)
 
 	TRACE_CLEANUP(pid);
 
-	trace_mtx_lock(&mtx);
+	xmtx_lock(&mtx);
 	--workers;
-	trace_mtx_unlock(&mtx);
+	xmtx_unlock(&mtx);
 
-	trace_cnd_signal(&cnd);
+	xcnd_signal(&cnd);
 		 
-	trace_thrd_detach(thrd_current());
+	xthrd_detach(thrd_current());
 
 	thrd_exit(0);
 }
@@ -186,7 +186,7 @@ monitor_sigtrap(pid_t pid)
 	lwpid_t lid;
 	int status;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 
 	lid = psi.psi_lwpid;
 
@@ -218,7 +218,7 @@ monitor_sigtrap(pid_t pid)
 	case TRAP_LWP:
 		/* FALLTHROUGH */
 	case TRAP_CHLD:
-		trace_ptrace(PT_GET_PROCESS_STATE, pid, &pst, sizeof(pst));
+		xptrace(PT_GET_PROCESS_STATE, pid, &pst, sizeof(pst));
 		switch (pst.pe_report_event) {
 		case PTRACE_FORK:
 			TRACE_FORKED(pid, lid, pst.pe_other_pid);
@@ -259,7 +259,7 @@ monitor_crash(pid_t pid)
 	ptrace_siginfo_t psi;
 	lwpid_t lid;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 
 	lid = psi.psi_lwpid;
 
@@ -277,7 +277,7 @@ monitor_signal(pid_t pid)
 	ptrace_siginfo_t psi;
 	lwpid_t lid;
 
-	trace_ptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
+	xptrace(PT_GET_SIGINFO, pid, &psi, sizeof(psi));
 
 	lid = psi.psi_lwpid;
 
