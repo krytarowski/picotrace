@@ -74,6 +74,40 @@ sl_concat(StringList *sl)
 	return buf;
 }
 
+StringList *
+sl_initf(const char * restrict format, ...)
+{
+	StringList *sl;
+	va_list ap;
+
+	va_start(ap, format);
+	sl = sl_vinitf(format, ap);
+	va_end(ap);
+
+	return sl;
+}
+
+StringList *
+sl_vinitf( const char * restrict format, va_list ap)
+{
+	StringList *sl;
+	int rv;
+
+	sl = sl_init();
+
+	if (sl == NULL)
+		return NULL;
+
+	rv = sl_vaddf(sl, format, ap);
+
+	if (rv == -1) {
+		sl_free(sl, 0);
+		return NULL;
+	}
+
+	return sl;
+}
+
 int
 sl_addf(StringList *sl, const char * restrict format, ...)
 {
@@ -95,7 +129,7 @@ sl_vaddf(StringList *sl, const char * restrict format, va_list ap)
 
 	rv = vasprintf(&buf, format, ap);
 	if (rv >= 0)
-		sl_add(sl, buf);
+		rv = sl_add(sl, buf);
 
 	return rv;
 }
@@ -115,4 +149,18 @@ sl_fwrite(StringList * restrict sl, FILE * restrict fp)
 	free(buf);
 
 	return (size_t)rv;
+}
+
+size_t
+sl_fdump(StringList * restrict sl, FILE * restrict fp)
+{
+	size_t sz;
+
+	sz = sl_fwrite(sl, fp);
+	if (sz == SIZE_MAX)
+		return sz;
+
+	sl_free(sl, 1);
+
+	return sz;
 }

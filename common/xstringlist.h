@@ -39,8 +39,11 @@
 #include <stringlist.h>
 
 char *sl_concat(StringList *);
+StringList *sl_initf(const char * restrict, ...) __printflike(1, 2);
+StringList *sl_vinitf(const char * restrict, va_list) __printflike(1, 0);
 int sl_addf(StringList *, const char * restrict, ...) __printflike(2, 3);
 int sl_vaddf(StringList *, const char * restrict, va_list) __printflike(2, 0);
 size_t sl_fwrite(StringList * restrict, FILE * restrict);
+size_t sl_fdump(StringList * restrict, FILE * restrict);
 
 #endif /* XSTRINGLIST_H */
