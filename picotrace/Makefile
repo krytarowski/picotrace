@@ -6,7 +6,7 @@ SRCS+=	picotrace.c
 
 # Common files, shared between tracers.
 .PATH:	../common
-SRCS+=	children.c misc.c trace.c xutils.c
+SRCS+=	children.c misc.c trace.c xstringlist.c xutils.c
 
 CPPFLAGS+=	-I../common
 
@@ -18,5 +18,11 @@ DPADD+=	${LIBPTHREAD}
 LDADD+=	-lpthread
 
 #COPTS+=	-g -O0
+
+#COPTS+=        -fsanitize=address
+#LDADD+=        -fsanitize=address
+
+#COPTS+=        -fsanitize=undefined
+#LDADD+=        -fsanitize=undefined
 
 .include <bsd.prog.mk>

@@ -45,6 +45,7 @@
 #include "misc.h"
 #include "syscalls.h"
 #include "trace.h"
+#include "xstringlist.h"
 #include "xutils.h"
 
 static void usage(void) __dead;
@@ -73,19 +74,6 @@ static void *pid_tree;
 static thread_local struct pid_context *pid_ctx;
 
 static mtx_t mtx;
-
-#define PRINT(fmt, ...)							\
-	do {							    	\
-		fprintf(output, "%6d %6d %14s " fmt,			\
-			pid, lid, pid_ctx->name, ## __VA_ARGS__);	\
-	} while(0)
-
-#define SPRINTF(a,...)							\
-	do {								\
-		if (n < sizeof(buf))					\
-			n += xsnprintf(buf + n, sizeof(buf) - n ,	\
-				(a), ## __VA_ARGS__);			\
-	} while (0)
 
 
 static void
@@ -220,32 +208,38 @@ picotrace_unstop(pid_t pid)
 static void
 picotrace_continued(pid_t pid)
 {
-	lwpid_t lid;
+	StringList *sl;
 
-	lid = 0;
+	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	PRINT("CONTINUED\n");
+	sl_addf(sl, "CONTINUED\n");
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_signaled(pid_t pid, int sig, int core)
 {
-	lwpid_t lid;
+	StringList *sl;
 
-	lid = 0;
+	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	PRINT("SIGNALED signal=%s core=%s\n", signalname(sig),
+	sl_addf(sl, "SIGNALED signal=%s core=%s\n", signalname(sig),
 	    core ? "true" : "false");
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_exited(pid_t pid, int status)
 {
-	lwpid_t lid;
+	StringList *sl;
 
-	lid = 0;
+	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	PRINT("EXITED status=%d\n", WEXITSTATUS(status));
+	sl_addf(sl, "EXITED status=%d\n", WEXITSTATUS(status));
+
+	sl_fdump(sl, output);
 }
 
 static void
@@ -277,55 +271,52 @@ picotrace_breakpoint(pid_t pid, lwpid_t lid)
 static void
 picotrace_syscallentry(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
-	char buf[512];
-
+	StringList *sl;
 	ssize_t nargs;
 	const char *name;
 	size_t i;
-	int n;
 	bool recognized;
 
 	assert(si);
 
-	n = 0; /* Used internally by SPRINTF() */
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	nargs = syscall_info[si->si_sysnum].nargs;
 	name = syscall_info[si->si_sysnum].name;
 
 	recognized = nargs != -1;
 
-	SPRINTF("SCE ");
+	sl_addf(sl, "SCE ");
 
 	if (recognized) {
-		SPRINTF("%s", name);
+		sl_addf(sl, "%s", name);
 
-		SPRINTF("(");
+		sl_addf(sl, "(");
 		if (nargs > 0) {
-			SPRINTF("%#" PRIx64, si->si_args[0]);
+			sl_addf(sl, "%#" PRIx64, si->si_args[0]);
 			for (i = 1; i < nargs; i++) {
-				SPRINTF(",%#" PRIx64, si->si_args[i]);
+				sl_addf(sl, ",%#" PRIx64, si->si_args[i]);
 			}	
 		}
-		SPRINTF(")");
+		sl_addf(sl, ")");
 	} else {
-		SPRINTF("UNKNOWN SYSCALL %d ", si->si_sysnum);
+		sl_addf(sl, "UNKNOWN SYSCALL %d ", si->si_sysnum);
 	}
 
-	PRINT("%s\n", buf);
+	sl_addf(sl, "\n");
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
-	char buf[512];
-	char error_buf[128];
+	StringList *sl;
 
 	ssize_t nargs;
 	const char *name;
 	const char *rettype;
 
 	size_t i;
-	int n;
 	int e;
 	bool recognized;
 	bool is64bit_rettype;
@@ -335,7 +326,7 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	assert(si);
 
-	n = 0; /* Used internally by SPRINTF() */
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	nargs = syscall_info[si->si_sysnum].nargs;
 	name = syscall_info[si->si_sysnum].name;
@@ -348,10 +339,10 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 	rv0 = si->si_retval[0];
 	rv1 = si->si_retval[1];
 
-	SPRINTF("SCX ");
+	sl_addf(sl, "SCX ");
 
 	if (recognized) {
-		SPRINTF("%s", name);
+		sl_addf(sl, "%s", name);
 
 		if (no_return) {
 		} else if (strcmp(rettype, "int") == 0) {
@@ -392,50 +383,59 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 			is64bit_rettype = false;
 		}
 
-		SPRINTF(" ");
+		sl_addf(sl, " ");
 
 		if (!no_return) {
-			SPRINTF("= ");
+			sl_addf(sl, "= ");
 			/* Special cases first */
 			if (strcmp(name, "pipe") == 0) {
-				SPRINTF("%#" PRIx32 " %#" PRIx32, rv0, rv1);
+				sl_addf(sl, "%#" PRIx32 " %#" PRIx32, rv0, rv1);
 			} else if (is64bit_rettype) {
 				/* These convoluted casts are needed */
 				u64 = ((uint64_t)(unsigned)rv1 << 32);
 				u64 |= (uint64_t)(unsigned)rv0;
-				SPRINTF("%#" PRIx64, u64);
+				sl_addf(sl, "%#" PRIx64, u64);
 			} else {
-				SPRINTF("%#" PRIx32, rv0);
+				sl_addf(sl, "%#" PRIx32, rv0);
 			}
 		}
 
 		if (e != 0) {
-			SPRINTF(" Err#%d", e);
+			sl_addf(sl, " Err#%d", e);
 			if (err2string(e)) {
-				SPRINTF(" %s", err2string(e));
+				sl_addf(sl, " %s", err2string(e));
 			}
 		}
 	} else {
-		SPRINTF("UNKNOWN-SYSCALL-%d ", si->si_sysnum);
+		sl_addf(sl, "UNKNOWN-SYSCALL-%d ", si->si_sysnum);
 
-		SPRINTF(" retval[0,1]= %#" PRIx32 " %#" PRIx32, rv0, rv1);
+		sl_addf(sl, " retval[0,1]= %#" PRIx32 " %#" PRIx32, rv0, rv1);
 
-		SPRINTF(" error= %#" PRIx32, e);
+		sl_addf(sl, " error= %#" PRIx32, e);
 	}
 
-	PRINT("%s\n", buf);
+	sl_addf(sl, "\n");
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_exec(pid_t pid, lwpid_t lid)
 {
-	PRINT("EXEC");
+	StringList *sl;
+
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	sl_addf(sl, "EXEC\n");
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_forked(pid_t pid, lwpid_t lid, pid_t child)
 {
+	StringList *sl;
 	int status;
+
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xwaitpid(child, &status, 0);
 
@@ -452,13 +452,18 @@ picotrace_forked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	PRINT("FORKED child=%d\n", child);
+	sl_addf(sl, "FORKED child=%d\n", child);
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_vforked(pid_t pid, lwpid_t lid, pid_t child)
 {
+	StringList *sl;
 	int status;
+
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xwaitpid(child, &status, 0);
 
@@ -475,85 +480,101 @@ picotrace_vforked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	PRINT("VFORKED child=%d\n", child);
+	sl_addf(sl, "VFORKED child=%d\n", child);
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_vforkdone(pid_t pid, lwpid_t lid, pid_t child)
 {
+	StringList *sl;
 
-	PRINT("VFORK_DONE child=%d\n", child);
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	sl_addf(sl, "VFORK_DONE child=%d\n", child);
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_lwpcreated(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
+	StringList *sl;
 
-	PRINT("LWP_CREATED lwp=%d\n", lwp);
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	sl_addf(sl, "LWP_CREATED lwp=%d\n", lwp);
+
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
+	StringList *sl;
 
-	PRINT("LWP_EXITED lwp=%d\n", lwp);
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	sl_addf(sl, "LWP_EXITED lwp=%d\n", lwp);
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
-	char buf[512];
-	int n;
+	StringList *sl;
 	const char *s;
 
-	n = 0;
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	SPRINTF("CRASHED ");
+	sl_addf(sl, "CRASHED ");
 
 	s = sig2string(si->si_signo);
 	if (s) {
-		SPRINTF("%s", s);
+		sl_addf(sl, "%s", s);
 	} else {
-		SPRINTF("signal#%d", si->si_code);
+		sl_addf(sl, "signal#%d", si->si_code);
 	}
-	SPRINTF(" si_code=%d si_addr=%p si_trap=%d", si->si_code, si->si_addr,
-	    si->si_trap);
+	sl_addf(sl, " si_code=%d si_addr=%p si_trap=%d\n", si->si_code,
+	    si->si_addr, si->si_trap);
 
-	PRINT("%s\n", buf);
+	sl_fdump(sl, output);
 }
 
 static void
 picotrace_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
-	char buf[512];
-	int n;
+	StringList *sl;
 	const char *s;
 
-	n = 0;
+	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	SPRINTF("STOPPED ");
+	sl_addf(sl, "STOPPED ");
 
 	s = sig2string(si->si_signo);
 	if (s) {
-		SPRINTF("%s", s);
+		sl_addf(sl, "%s", s);
 	} else {
-		SPRINTF("signal#%d", si->si_code);
+		sl_addf(sl, "signal#%d", si->si_code);
 	}
-	SPRINTF(" si_code=%d", si->si_code);
+	sl_addf(sl, " si_code=%d\n", si->si_code);
 
-	PRINT("%s\n", buf);
+	sl_fdump(sl, output);
 
 	/* If something stopped the traceee, detach. */
 	if (si->si_signo == SIGSTOP) {
-		n = 0;
+		sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-		SPRINTF("DETACHING stopped trace=%d", pid);
+		sl_addf(sl, "DETACHING stopped trace=%d", pid);
 
 		if (si->si_code == SI_USER) {
-			SPRINTF(" by pid=%d uid=%d", si->si_pid, si->si_uid);
+			sl_addf(sl, " by pid=%d uid=%d", si->si_pid, si->si_uid);
 		}
 
-		PRINT("%s\n", buf);
+
+		sl_addf(sl, "\n");
+		sl_fdump(sl, output);
 
 		xptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
 	}
@@ -630,6 +651,7 @@ spawn(char **argv)
 static void
 print_argv(pid_t pid)
 {
+	StringList *sl;
 	int i;
 	char *p;
 	int argc;
@@ -637,8 +659,6 @@ print_argv(pid_t pid)
 	size_t len;
         int mib[4];
 	lwpid_t lid;
-
-	lid = 0;
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_PROC_ARGS;
@@ -661,7 +681,10 @@ print_argv(pid_t pid)
 	p = argv;
 	for (i = 0; i < argc; i++) {
 		len = strlen(p);
-		PRINT("ARGV[%d] '%s'\n", i, p);
+
+		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+		sl_addf(sl, "ARGV[%d] '%s'\n", i, p);
+		sl_fdump(sl, output);
 		p += len + 1;
 	}
 
@@ -671,6 +694,7 @@ print_argv(pid_t pid)
 static void
 print_env(pid_t pid)
 {
+	StringList *sl;
 	int i;
 	char *p;
 	int envc;
@@ -702,7 +726,9 @@ print_env(pid_t pid)
 	p = envv;
 	for (i = 0; i < envc; i++) {
 		len = strlen(p);
-		PRINT("ENV[%d] '%s'\n", i, p);
+		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+		sl_addf(sl, "ENV[%d] '%s'\n", i, p);
+		sl_fdump(sl, output);
 		p += len + 1;
 	}
 
@@ -712,16 +738,15 @@ print_env(pid_t pid)
 static void
 print_elf_auxv(pid_t pid)
 {
+	StringList *sl;
+	char buf[512];
 	char vector[1024];
 	const AuxInfo *aux;
 	struct ptrace_io_desc pio;
 	lwpid_t lid;
 	char *name;
-	char buf[512];
-	int n;
 	size_t i;
 
-	lid = 0;
 	i = 0;
 
 	pio.piod_op = PIOD_READ_AUXV;
@@ -732,118 +757,119 @@ print_elf_auxv(pid_t pid)
 	xptrace(PT_IO, pid, &pio, 0);
 
 	for (aux = (const AuxInfo *)vector; aux->a_type != AT_NULL; ++aux) {
-		n = 0; /* used by SNPRINTF */
+		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-		SPRINTF("AUXV[%zu] ", i++);
+		sl_addf(sl, "AUXV[%zu] ", i++);
 
 		switch (aux->a_type) {
 		case AT_IGNORE:
-			SPRINTF("AT_IGNORE");
+			sl_addf(sl, "AT_IGNORE");
 			break;
 		case AT_EXECFD:
-			SPRINTF("AT_EXECFD=%#lx", aux->a_v);
+			sl_addf(sl, "AT_EXECFD=%#lx", aux->a_v);
 			break;
 		case AT_PHDR:
-			SPRINTF("AT_PHDR=%#lx", aux->a_v);
+			sl_addf(sl, "AT_PHDR=%#lx", aux->a_v);
 			break;
 		case AT_PHENT:
-			SPRINTF("AT_PHENT=%#lx", aux->a_v);
+			sl_addf(sl, "AT_PHENT=%#lx", aux->a_v);
 			break;
 		case AT_PHNUM:
-			SPRINTF("AT_PHNUM=%#lx", aux->a_v);
+			sl_addf(sl, "AT_PHNUM=%#lx", aux->a_v);
 			break;
 		case AT_PAGESZ:
-			SPRINTF("AT_PAGESZ=%#lx", aux->a_v);
+			sl_addf(sl, "AT_PAGESZ=%#lx", aux->a_v);
 			break;
 		case AT_BASE:
-			SPRINTF("AT_BASE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_BASE=%#lx", aux->a_v);
 			break;
 		case AT_FLAGS:
-			SPRINTF("AT_FLAGS=%#lx", aux->a_v);
+			sl_addf(sl, "AT_FLAGS=%#lx", aux->a_v);
 			break;
 		case AT_ENTRY:
-			SPRINTF("AT_ENTRY=%#lx", aux->a_v);
+			sl_addf(sl, "AT_ENTRY=%#lx", aux->a_v);
 			break;
 		case AT_DCACHEBSIZE:
-			SPRINTF("AT_DCACHEBSIZE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_ICACHEBSIZE:
-			SPRINTF("AT_ICACHEBSIZE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_ICACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_UCACHEBSIZE:
-			SPRINTF("AT_UCACHEBSIZE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_UCACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_STACKBASE:
-			SPRINTF("AT_STACKBASE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_STACKBASE=%#lx", aux->a_v);
 			break;
 
 #if 0
 		case AT_MIPS_NOTELF: /* overlap with AT_DCACHEBSIZE? */
-			SPRINTF("AT_DCACHEBSIZE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
 			break;
 #endif
 
 		case AT_EUID:
-			SPRINTF("AT_EUID=%ld", aux->a_v);
+			sl_addf(sl, "AT_EUID=%ld", aux->a_v);
 			break;
 		case AT_RUID:
-			SPRINTF("AT_RUID=%ld", aux->a_v);
+			sl_addf(sl, "AT_RUID=%ld", aux->a_v);
 			break;
 		case AT_EGID:
-			SPRINTF("AT_EGID=%ld", aux->a_v);
+			sl_addf(sl, "AT_EGID=%ld", aux->a_v);
 			break;
 		case AT_RGID:
-			SPRINTF("AT_RGID=%ld", aux->a_v);
+			sl_addf(sl, "AT_RGID=%ld", aux->a_v);
 			break;
 
 		case AT_SUN_LDELF:
-			SPRINTF("AT_SUN_LDELF=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_LDELF=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LDSHDR:
-			SPRINTF("AT_SUN_LDSHDR=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_LDSHDR=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LDNAME:
-			SPRINTF("AT_SUN_LDNAME=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_LDNAME=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LPGSIZE:
-			SPRINTF("AT_SUN_LPGSIZE=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_LPGSIZE=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_PLATFORM:
-			SPRINTF("AT_SUN_PLATFORM=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_PLATFORM=%#lx", aux->a_v);
 			break;
 		case AT_SUN_HWCAP:
-			SPRINTF("AT_SUN_HWCAP=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_HWCAP=%#lx", aux->a_v);
 			break;
 		case AT_SUN_IFLUSH:
-			SPRINTF("AT_SUN_IFLUSH=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_IFLUSH=%#lx", aux->a_v);
 			break;
 		case AT_SUN_CPU:
-			SPRINTF("AT_SUN_CPU=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_CPU=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_EMUL_ENTRY:
-			SPRINTF("AT_SUN_EMUL_ENTRY=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_EMUL_ENTRY=%#lx", aux->a_v);
 			break;
 		case AT_SUN_EMUL_EXECFD:
-			SPRINTF("AT_SUN_EMUL_EXECFD=%#lx", aux->a_v);
+			sl_addf(sl, "AT_SUN_EMUL_EXECFD=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_EXECNAME:
 			name = copyinstr(pid, (void *)(intptr_t)aux->a_v);
-			SPRINTF("AT_SUN_EXECNAME=");
+			sl_addf(sl, "AT_SUN_EXECNAME=");
 			if (name)
-				SPRINTF("'%s'", name);
+				sl_addf(sl, "'%s'", name);
 			else
-				SPRINTF("%#" PRIx64, aux->a_v);
+				sl_addf(sl, "%#" PRIx64, aux->a_v);
 			free(name);
 			break;
 		default:
-			SPRINTF("UNKNOWN-TAG-%u=%#" PRIx64, aux->a_type, aux->a_v);
-			break;
+			sl_addf(sl, "UNKNOWN-TAG-%u=%#" PRIx64, aux->a_type, aux->a_v);
 			break;
 		}
-		PRINT("%s\n", buf);
+
+		sl_addf(sl, "\n");
+		sl_fdump(sl, output);
 	}
 }
 
@@ -950,12 +976,13 @@ sig2string(int num)
 static void
 detach_child(pid_t pid)
 {
-	lwpid_t lid;
+	StringList *sl;
 	int status;
 
-	lid = -1;
+	sl_addf(sl, "%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	PRINT("DETACHING child=%d\n", pid);
+	sl_addf(sl, "DETACHING child=%d\n", pid);
+	sl_fdump(sl, output);
 
 	kill(pid, SIGSTOP);
 
