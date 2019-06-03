@@ -6,7 +6,7 @@ SRCS+=	truss.c count.c events.c decoder.c
 
 # Common files, shared between tracers.
 .PATH:	../common
-SRCS+=	children.c misc.c trace.c xutils.c
+SRCS+=	children.c misc.c trace.c xutils.c xstringlist.c
 
 CPPFLAGS+=	-I../common
 
