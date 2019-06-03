@@ -1,5 +1,5 @@
 #	$NetBSD$
 
-SUBDIR=		coredumper picotrace truss
+SUBDIR=		coredumper picotrace sigtracer truss
 
 .include <bsd.subdir.mk>
