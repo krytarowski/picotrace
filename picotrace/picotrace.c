@@ -210,11 +210,11 @@ picotrace_continued(pid_t pid)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	sl_addf(sl, "CONTINUED\n");
+	xsl_addf(sl, "CONTINUED\n");
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -222,12 +222,12 @@ picotrace_signaled(pid_t pid, int sig, int core)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	sl_addf(sl, "SIGNALED signal=%s core=%s\n", signalname(sig),
+	xsl_addf(sl, "SIGNALED signal=%s core=%s\n", signalname(sig),
 	    core ? "true" : "false");
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -235,11 +235,11 @@ picotrace_exited(pid_t pid, int status)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	sl_addf(sl, "EXITED status=%d\n", WEXITSTATUS(status));
+	xsl_addf(sl, "EXITED status=%d\n", WEXITSTATUS(status));
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -279,32 +279,32 @@ picotrace_syscallentry(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	assert(si);
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	nargs = syscall_info[si->si_sysnum].nargs;
 	name = syscall_info[si->si_sysnum].name;
 
 	recognized = nargs != -1;
 
-	sl_addf(sl, "SCE ");
+	xsl_addf(sl, "SCE ");
 
 	if (recognized) {
-		sl_addf(sl, "%s", name);
+		xsl_addf(sl, "%s", name);
 
-		sl_addf(sl, "(");
+		xsl_addf(sl, "(");
 		if (nargs > 0) {
-			sl_addf(sl, "%#" PRIx64, si->si_args[0]);
+			xsl_addf(sl, "%#" PRIx64, si->si_args[0]);
 			for (i = 1; i < nargs; i++) {
-				sl_addf(sl, ",%#" PRIx64, si->si_args[i]);
+				xsl_addf(sl, ",%#" PRIx64, si->si_args[i]);
 			}	
 		}
-		sl_addf(sl, ")");
+		xsl_addf(sl, ")");
 	} else {
-		sl_addf(sl, "UNKNOWN SYSCALL %d ", si->si_sysnum);
+		xsl_addf(sl, "UNKNOWN SYSCALL %d ", si->si_sysnum);
 	}
 
-	sl_addf(sl, "\n");
-	sl_fdump(sl, output);
+	xsl_addf(sl, "\n");
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -326,7 +326,7 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 
 	assert(si);
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	nargs = syscall_info[si->si_sysnum].nargs;
 	name = syscall_info[si->si_sysnum].name;
@@ -339,10 +339,10 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 	rv0 = si->si_retval[0];
 	rv1 = si->si_retval[1];
 
-	sl_addf(sl, "SCX ");
+	xsl_addf(sl, "SCX ");
 
 	if (recognized) {
-		sl_addf(sl, "%s", name);
+		xsl_addf(sl, "%s", name);
 
 		if (no_return) {
 		} else if (strcmp(rettype, "int") == 0) {
@@ -383,39 +383,39 @@ picotrace_syscallexit(pid_t pid, lwpid_t lid, siginfo_t *si)
 			is64bit_rettype = false;
 		}
 
-		sl_addf(sl, " ");
+		xsl_addf(sl, " ");
 
 		if (!no_return) {
-			sl_addf(sl, "= ");
+			xsl_addf(sl, "= ");
 			/* Special cases first */
 			if (strcmp(name, "pipe") == 0) {
-				sl_addf(sl, "%#" PRIx32 " %#" PRIx32, rv0, rv1);
+				xsl_addf(sl, "%#" PRIx32 " %#" PRIx32, rv0, rv1);
 			} else if (is64bit_rettype) {
 				/* These convoluted casts are needed */
 				u64 = ((uint64_t)(unsigned)rv1 << 32);
 				u64 |= (uint64_t)(unsigned)rv0;
-				sl_addf(sl, "%#" PRIx64, u64);
+				xsl_addf(sl, "%#" PRIx64, u64);
 			} else {
-				sl_addf(sl, "%#" PRIx32, rv0);
+				xsl_addf(sl, "%#" PRIx32, rv0);
 			}
 		}
 
 		if (e != 0) {
-			sl_addf(sl, " Err#%d", e);
+			xsl_addf(sl, " Err#%d", e);
 			if (err2string(e)) {
-				sl_addf(sl, " %s", err2string(e));
+				xsl_addf(sl, " %s", err2string(e));
 			}
 		}
 	} else {
-		sl_addf(sl, "UNKNOWN-SYSCALL-%d ", si->si_sysnum);
+		xsl_addf(sl, "UNKNOWN-SYSCALL-%d ", si->si_sysnum);
 
-		sl_addf(sl, " retval[0,1]= %#" PRIx32 " %#" PRIx32, rv0, rv1);
+		xsl_addf(sl, " retval[0,1]= %#" PRIx32 " %#" PRIx32, rv0, rv1);
 
-		sl_addf(sl, " error= %#" PRIx32, e);
+		xsl_addf(sl, " error= %#" PRIx32, e);
 	}
 
-	sl_addf(sl, "\n");
-	sl_fdump(sl, output);
+	xsl_addf(sl, "\n");
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -423,10 +423,10 @@ picotrace_exec(pid_t pid, lwpid_t lid)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "EXEC\n");
-	sl_fdump(sl, output);
+	xsl_addf(sl, "EXEC\n");
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -435,7 +435,7 @@ picotrace_forked(pid_t pid, lwpid_t lid, pid_t child)
 	StringList *sl;
 	int status;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xwaitpid(child, &status, 0);
 
@@ -452,9 +452,9 @@ picotrace_forked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	sl_addf(sl, "FORKED child=%d\n", child);
+	xsl_addf(sl, "FORKED child=%d\n", child);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -463,7 +463,7 @@ picotrace_vforked(pid_t pid, lwpid_t lid, pid_t child)
 	StringList *sl;
 	int status;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xwaitpid(child, &status, 0);
 
@@ -480,9 +480,9 @@ picotrace_vforked(pid_t pid, lwpid_t lid, pid_t child)
 
 	launch_worker(child);
 
-	sl_addf(sl, "VFORKED child=%d\n", child);
+	xsl_addf(sl, "VFORKED child=%d\n", child);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -490,11 +490,11 @@ picotrace_vforkdone(pid_t pid, lwpid_t lid, pid_t child)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "VFORK_DONE child=%d\n", child);
+	xsl_addf(sl, "VFORK_DONE child=%d\n", child);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -502,11 +502,11 @@ picotrace_lwpcreated(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "LWP_CREATED lwp=%d\n", lwp);
+	xsl_addf(sl, "LWP_CREATED lwp=%d\n", lwp);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -514,10 +514,10 @@ picotrace_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
 	StringList *sl;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "LWP_EXITED lwp=%d\n", lwp);
-	sl_fdump(sl, output);
+	xsl_addf(sl, "LWP_EXITED lwp=%d\n", lwp);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -526,20 +526,20 @@ picotrace_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 	StringList *sl;
 	const char *s;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "CRASHED ");
+	xsl_addf(sl, "CRASHED ");
 
 	s = sig2string(si->si_signo);
 	if (s) {
-		sl_addf(sl, "%s", s);
+		xsl_addf(sl, "%s", s);
 	} else {
-		sl_addf(sl, "signal#%d", si->si_code);
+		xsl_addf(sl, "signal#%d", si->si_code);
 	}
-	sl_addf(sl, " si_code=%d si_addr=%p si_trap=%d\n", si->si_code,
+	xsl_addf(sl, " si_code=%d si_addr=%p si_trap=%d\n", si->si_code,
 	    si->si_addr, si->si_trap);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 }
 
 static void
@@ -548,33 +548,33 @@ picotrace_stopped(pid_t pid, lwpid_t lid, siginfo_t *si)
 	StringList *sl;
 	const char *s;
 
-	sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-	sl_addf(sl, "STOPPED ");
+	xsl_addf(sl, "STOPPED ");
 
 	s = sig2string(si->si_signo);
 	if (s) {
-		sl_addf(sl, "%s", s);
+		xsl_addf(sl, "%s", s);
 	} else {
-		sl_addf(sl, "signal#%d", si->si_code);
+		xsl_addf(sl, "signal#%d", si->si_code);
 	}
-	sl_addf(sl, " si_code=%d\n", si->si_code);
+	xsl_addf(sl, " si_code=%d\n", si->si_code);
 
-	sl_fdump(sl, output);
+	xsl_fdump(sl, output);
 
 	/* If something stopped the traceee, detach. */
 	if (si->si_signo == SIGSTOP) {
-		sl = sl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+		sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
-		sl_addf(sl, "DETACHING stopped trace=%d", pid);
+		xsl_addf(sl, "DETACHING stopped trace=%d", pid);
 
 		if (si->si_code == SI_USER) {
-			sl_addf(sl, " by pid=%d uid=%d", si->si_pid, si->si_uid);
+			xsl_addf(sl, " by pid=%d uid=%d", si->si_pid, si->si_uid);
 		}
 
 
-		sl_addf(sl, "\n");
-		sl_fdump(sl, output);
+		xsl_addf(sl, "\n");
+		xsl_fdump(sl, output);
 
 		xptrace(PT_DETACH, pid, (void *)1, SIGSTOP);
 	}
@@ -682,9 +682,9 @@ print_argv(pid_t pid)
 	for (i = 0; i < argc; i++) {
 		len = strlen(p);
 
-		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
-		sl_addf(sl, "ARGV[%d] '%s'\n", i, p);
-		sl_fdump(sl, output);
+		sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+		xsl_addf(sl, "ARGV[%d] '%s'\n", i, p);
+		xsl_fdump(sl, output);
 		p += len + 1;
 	}
 
@@ -726,9 +726,9 @@ print_env(pid_t pid)
 	p = envv;
 	for (i = 0; i < envc; i++) {
 		len = strlen(p);
-		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
-		sl_addf(sl, "ENV[%d] '%s'\n", i, p);
-		sl_fdump(sl, output);
+		sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+		xsl_addf(sl, "ENV[%d] '%s'\n", i, p);
+		xsl_fdump(sl, output);
 		p += len + 1;
 	}
 
@@ -757,119 +757,119 @@ print_elf_auxv(pid_t pid)
 	xptrace(PT_IO, pid, &pio, 0);
 
 	for (aux = (const AuxInfo *)vector; aux->a_type != AT_NULL; ++aux) {
-		sl = sl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
+		sl = xsl_initf("%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-		sl_addf(sl, "AUXV[%zu] ", i++);
+		xsl_addf(sl, "AUXV[%zu] ", i++);
 
 		switch (aux->a_type) {
 		case AT_IGNORE:
-			sl_addf(sl, "AT_IGNORE");
+			xsl_addf(sl, "AT_IGNORE");
 			break;
 		case AT_EXECFD:
-			sl_addf(sl, "AT_EXECFD=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_EXECFD=%#lx", aux->a_v);
 			break;
 		case AT_PHDR:
-			sl_addf(sl, "AT_PHDR=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_PHDR=%#lx", aux->a_v);
 			break;
 		case AT_PHENT:
-			sl_addf(sl, "AT_PHENT=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_PHENT=%#lx", aux->a_v);
 			break;
 		case AT_PHNUM:
-			sl_addf(sl, "AT_PHNUM=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_PHNUM=%#lx", aux->a_v);
 			break;
 		case AT_PAGESZ:
-			sl_addf(sl, "AT_PAGESZ=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_PAGESZ=%#lx", aux->a_v);
 			break;
 		case AT_BASE:
-			sl_addf(sl, "AT_BASE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_BASE=%#lx", aux->a_v);
 			break;
 		case AT_FLAGS:
-			sl_addf(sl, "AT_FLAGS=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_FLAGS=%#lx", aux->a_v);
 			break;
 		case AT_ENTRY:
-			sl_addf(sl, "AT_ENTRY=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_ENTRY=%#lx", aux->a_v);
 			break;
 		case AT_DCACHEBSIZE:
-			sl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_ICACHEBSIZE:
-			sl_addf(sl, "AT_ICACHEBSIZE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_ICACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_UCACHEBSIZE:
-			sl_addf(sl, "AT_UCACHEBSIZE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_UCACHEBSIZE=%#lx", aux->a_v);
 			break;
 		case AT_STACKBASE:
-			sl_addf(sl, "AT_STACKBASE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_STACKBASE=%#lx", aux->a_v);
 			break;
 
 #if 0
 		case AT_MIPS_NOTELF: /* overlap with AT_DCACHEBSIZE? */
-			sl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_DCACHEBSIZE=%#lx", aux->a_v);
 			break;
 #endif
 
 		case AT_EUID:
-			sl_addf(sl, "AT_EUID=%ld", aux->a_v);
+			xsl_addf(sl, "AT_EUID=%ld", aux->a_v);
 			break;
 		case AT_RUID:
-			sl_addf(sl, "AT_RUID=%ld", aux->a_v);
+			xsl_addf(sl, "AT_RUID=%ld", aux->a_v);
 			break;
 		case AT_EGID:
-			sl_addf(sl, "AT_EGID=%ld", aux->a_v);
+			xsl_addf(sl, "AT_EGID=%ld", aux->a_v);
 			break;
 		case AT_RGID:
-			sl_addf(sl, "AT_RGID=%ld", aux->a_v);
+			xsl_addf(sl, "AT_RGID=%ld", aux->a_v);
 			break;
 
 		case AT_SUN_LDELF:
-			sl_addf(sl, "AT_SUN_LDELF=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_LDELF=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LDSHDR:
-			sl_addf(sl, "AT_SUN_LDSHDR=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_LDSHDR=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LDNAME:
-			sl_addf(sl, "AT_SUN_LDNAME=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_LDNAME=%#lx", aux->a_v);
 			break;
 		case AT_SUN_LPGSIZE:
-			sl_addf(sl, "AT_SUN_LPGSIZE=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_LPGSIZE=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_PLATFORM:
-			sl_addf(sl, "AT_SUN_PLATFORM=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_PLATFORM=%#lx", aux->a_v);
 			break;
 		case AT_SUN_HWCAP:
-			sl_addf(sl, "AT_SUN_HWCAP=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_HWCAP=%#lx", aux->a_v);
 			break;
 		case AT_SUN_IFLUSH:
-			sl_addf(sl, "AT_SUN_IFLUSH=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_IFLUSH=%#lx", aux->a_v);
 			break;
 		case AT_SUN_CPU:
-			sl_addf(sl, "AT_SUN_CPU=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_CPU=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_EMUL_ENTRY:
-			sl_addf(sl, "AT_SUN_EMUL_ENTRY=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_EMUL_ENTRY=%#lx", aux->a_v);
 			break;
 		case AT_SUN_EMUL_EXECFD:
-			sl_addf(sl, "AT_SUN_EMUL_EXECFD=%#lx", aux->a_v);
+			xsl_addf(sl, "AT_SUN_EMUL_EXECFD=%#lx", aux->a_v);
 			break;
 
 		case AT_SUN_EXECNAME:
 			name = copyinstr(pid, (void *)(intptr_t)aux->a_v);
-			sl_addf(sl, "AT_SUN_EXECNAME=");
+			xsl_addf(sl, "AT_SUN_EXECNAME=");
 			if (name)
-				sl_addf(sl, "'%s'", name);
+				xsl_addf(sl, "'%s'", name);
 			else
-				sl_addf(sl, "%#" PRIx64, aux->a_v);
+				xsl_addf(sl, "%#" PRIx64, aux->a_v);
 			free(name);
 			break;
 		default:
-			sl_addf(sl, "UNKNOWN-TAG-%u=%#" PRIx64, aux->a_type, aux->a_v);
+			xsl_addf(sl, "UNKNOWN-TAG-%u=%#" PRIx64, aux->a_type, aux->a_v);
 			break;
 		}
 
-		sl_addf(sl, "\n");
-		sl_fdump(sl, output);
+		xsl_addf(sl, "\n");
+		xsl_fdump(sl, output);
 	}
 }
 
@@ -979,10 +979,10 @@ detach_child(pid_t pid)
 	StringList *sl;
 	int status;
 
-	sl_addf(sl, "%6d %6d %14s ", pid, 0, pid_ctx->name);
+	xsl_addf(sl, "%6d %6d %14s ", pid, 0, pid_ctx->name);
 
-	sl_addf(sl, "DETACHING child=%d\n", pid);
-	sl_fdump(sl, output);
+	xsl_addf(sl, "DETACHING child=%d\n", pid);
+	xsl_fdump(sl, output);
 
 	kill(pid, SIGSTOP);
 
