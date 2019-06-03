@@ -157,7 +157,7 @@ sl_fdump(StringList * restrict sl, FILE * restrict fp)
 	size_t sz;
 
 	sz = sl_fwrite(sl, fp);
-	if (sz == SIZE_MAX)
+	if (sz == (size_t)-1)
 		return sz;
 
 	sl_free(sl, 1);
