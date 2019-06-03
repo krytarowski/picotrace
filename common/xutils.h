@@ -49,6 +49,8 @@
 #include <threads.h>
 #include <unistd.h>
 
+#include "xstringlist.h"
+
 int xthrd_create(thrd_t *, thrd_start_t, void *);
 int xthrd_detach(thrd_t thr);
 int xmtx_init(mtx_t *, int);
@@ -64,5 +66,15 @@ int xsysctl(const int *, u_int, void *, size_t *, const void *, size_t);
 int xsnprintf(char * __restrict, size_t, const char * __restrict, ...)
     __printflike(3,4);
 int xtimespec_get(struct timespec *, int);
+
+/* xstringlist */
+
+char *xsl_concat(StringList *);
+StringList *xsl_initf(const char * restrict, ...) __printflike(1, 2);
+StringList *xsl_vinitf(const char * restrict, va_list) __printflike(1, 0);
+int xsl_addf(StringList *, const char * restrict, ...) __printflike(2, 3);
+int xsl_vaddf(StringList *, const char * restrict, va_list) __printflike(2, 0);
+size_t xsl_fwrite(StringList * restrict, FILE * restrict);
+size_t xsl_fdump(StringList * restrict, FILE * restrict);
 
 #endif /* TRACE_UTILS_H */

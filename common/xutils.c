@@ -46,6 +46,10 @@
 #include <threads.h>
 #include <unistd.h>
 
+#include "xstringlist.h"
+#include "xutils.h"
+
+
 int
 xthrd_create(thrd_t *thr, thrd_start_t func, void *arg)
 {
@@ -226,4 +230,94 @@ xtimespec_get(struct timespec *ts, int base)
 		errx(EXIT_FAILURE, "timespec_get");
 
 	return base;
+}
+
+/* xstringlist */
+
+char *
+xsl_concat(StringList *sl)
+{
+	char *s;
+
+	s = sl_concat(sl);
+	if (s == NULL)
+		err(EXIT_FAILURE, "sl_concat");
+
+	return s;
+}
+
+StringList *
+xsl_initf(const char * restrict format, ...)
+{
+	StringList *sl;
+	va_list ap;
+
+	va_start(ap, format);
+	sl = xsl_vinitf(format, ap);
+	va_end(ap);
+
+	return sl;
+}
+
+StringList *
+xsl_vinitf(const char * restrict format, va_list ap)
+{
+	StringList *sl;
+
+	sl = sl_vinitf(format, ap);
+
+	if (sl == NULL)
+		err(EXIT_FAILURE, "sl_initf");
+
+	return sl;
+}
+
+int
+xsl_addf(StringList *sl, const char * restrict format, ...)
+{
+	int rv;
+	va_list ap;
+
+	va_start(ap, format);
+	rv = xsl_vaddf(sl, format, ap);
+	va_end(ap);
+
+	return rv;
+}
+
+int
+xsl_vaddf(StringList *sl, const char * restrict format, va_list ap)
+{
+	int rv;
+
+	rv = sl_vaddf(sl, format, ap);
+
+	if (rv == -1)
+		err(EXIT_FAILURE, "sl_addf");
+
+	return rv;
+}
+
+size_t
+xsl_fwrite(StringList * restrict sl, FILE * restrict fp)
+{
+	size_t sz;
+
+	sz = sl_fwrite(sl, fp);
+	if (sz == (size_t)-1)
+		err(EXIT_FAILURE, "sl_fwrite");
+
+	return sz;
+}
+
+size_t
+xsl_fdump(StringList * restrict sl, FILE * restrict fp)
+{
+	size_t sz;
+
+	sz = sl_fdump(sl, fp);
+	if (sz == (size_t)-1)
+		err(EXIT_FAILURE, "sl_fwrite");
+
+	return sz;
 }
