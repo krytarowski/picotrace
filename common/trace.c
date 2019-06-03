@@ -240,6 +240,7 @@ monitor_sigtrap(pid_t pid)
 			TRACE_LWPEXITED(pid, lid, pst.pe_lwp);
 			break;
 		}
+		break;
 
 	default:
 		/* Fallback to regular crash/signal. */
