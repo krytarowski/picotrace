@@ -1,6 +1,5 @@
 KNOWN KERNEL BUGS
 
- - threading applications can lockup due to a kernel bug
  - vfork is unstable and temporarily disabled
  - attaching to a sleeping process, terminates it
  - stopped process with SIGSTOP/SIGTSTP/SIGTTIN/SIGTTOU does not process SIGCONT from other sources
