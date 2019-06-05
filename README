@@ -61,6 +61,29 @@ $ ./picotrace echo
  19964      0           echo EXITED status=0
 
 
+sigtracer
+=========
+
+sigtracer is a subset of picotrace with focus on signal events only.
+There are no reports for syscall entry and syscall exit traps.
+There are also no reports for ARG, ENV and AUX vectors.
+
+The output of this program is the same as picotrace, except it
+contains less information.
+
+Usage:
+
+   sigtracer [-i] [-o OUTPUT] [-p | command [arg ...]]
+
+Features:
+
+ * Attach to an already running process.
+ * Spawn a new process.
+ * Inherit forks/vforks/clones/etc.
+ * Report process id, process name, LWP id, event (exec, fork, etc).
+ * Log to stdout, as an option redirect log to a file.
+
+
 NetBSD strace
 =============
 
@@ -184,6 +207,7 @@ $ make
 HISTORY
 =======
 
+ * 2019-06-03 New utility sigtracer was imported.
  * 2019-05-29 Minix mdb was imported as minixdb.
  * 2019-05-23 The FreeBSD truss has been rewritten from scratch for NetBSD.
  * 2019-05-13 FreeBSD truss (SVN r. 347514) was imported.
