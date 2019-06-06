@@ -104,7 +104,7 @@ Features:
  * Inherit forks/vforks/clones/etc.
  * Log to stdout, as an option redirect log to a file.
 
-Example output (shortened):
+Example output:
 
 $ ./singlestepper true
 Total count: 1639915
