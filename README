@@ -84,6 +84,36 @@ Features:
  * Log to stdout, as an option redirect log to a file.
 
 
+singlestepper
+=============
+
+singlestepper counts the number of executed instructions in a traced program.
+
+The underlying mechanism for recording each single step event slows down
+execution of programs by orders of magnitude (approximately 1000x slowdown on
+NetBSD/amd64) and thus it's not the best tool for performance analysis.
+
+Usage:
+
+   singlestepper [-i] [-o OUTPUT] [-p | command [arg ...]]
+
+Features:
+
+ * Attach to an already running process.
+ * Spawn a new process.
+ * Inherit forks/vforks/clones/etc.
+ * Log to stdout, as an option redirect log to a file.
+
+Example output (shortened):
+
+$ ./singlestepper true
+Total count: 1639915
+
+$ ./singlestepper echo 
+
+Total count: 1039124
+
+
 NetBSD strace
 =============
 
@@ -207,6 +237,7 @@ $ make
 HISTORY
 =======
 
+ * 2019-06-06 New utility singlestepper was imported.
  * 2019-06-03 New utility sigtracer was imported.
  * 2019-05-29 Minix mdb was imported as minixdb.
  * 2019-05-23 The FreeBSD truss has been rewritten from scratch for NetBSD.
