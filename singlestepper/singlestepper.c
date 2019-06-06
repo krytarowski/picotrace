@@ -84,6 +84,10 @@ singlestepper_main(int argc, char **argv)
 
 	pid = 0;
 
+#if !defined(__x86_64__) && !defined(__i386__)
+	errx(EXIT_FAILURE, "Not ported to this platform.");
+#endif
+
 	while ((ch = getopt(argc, argv, "e:f:io:p:")) != -1) {
 		switch (ch) {
 		case 'i':
@@ -168,11 +172,13 @@ singlestepper_startup(pid_t pid)
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
 	pe.pe_set_event |= PTRACE_LWP_EXIT;
 
+#ifdef PT_STEP
 	pl.pl_lwpid = 0;
 	while (ptrace(PT_LWPINFO, pid, (void *)&pl, sizeof(pl)) != -1
 	    && pl.pl_lwpid != 0) {
 		xptrace(PT_SETSTEP, pid, NULL, pl.pl_lwpid);
 	}
+#endif
 
 	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
 }
@@ -326,7 +332,9 @@ static void
 singlestepper_lwpcreated(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
 
+#ifdef PT_STEP
 	xptrace(PT_SETSTEP, pid, NULL, lwp);
+#endif
 }
 
 static void
