@@ -154,6 +154,7 @@ sigtracer_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
 #endif
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
@@ -364,6 +365,34 @@ sigtracer_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xsl_addf(sl, "LWP_EXITED lwp=%d\n", lwp);
+	xsl_fdump(sl, output);
+}
+
+static void
+sigtracer_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	StringList *sl;
+	int status;
+
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
+
+	xsl_addf(sl, "SPAWNED child=%d\n", child);
+
 	xsl_fdump(sl, output);
 }
 
@@ -613,6 +642,7 @@ struct trace_ops ops = {
 	.vforkdone = sigtracer_vforkdone,
 	.lwpcreated = sigtracer_lwpcreated,
 	.lwpexited = sigtracer_lwpexited,
+	.spawned = sigtracer_spawned,
 	.crashed = sigtracer_crashed,
 	.stopped = sigtracer_stopped
 };
