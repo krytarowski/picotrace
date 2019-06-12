@@ -68,6 +68,7 @@ static int workers;
 #define TRACE_VFORKDONE(pid, lid, child) (*ops.vforkdone)(pid, lid, child)
 #define TRACE_LWPCREATED(pid, lid, lwp) (*ops.lwpcreated)(pid, lid, lwp)
 #define TRACE_LWPEXITED(pid, lid, lwp) (*ops.lwpexited)(pid, lid, lwp)
+#define TRACE_SPAWNED(pid, lid, child) (*ops.spawned)(pid, lid, child)
 #define TRACE_CRASHED(pid, lid, si) (*ops.crashed)(pid, lid, si)
 #define TRACE_STOPPED(pid, lid, si) (*ops.stopped)(pid, lid, si)
 
@@ -238,6 +239,10 @@ monitor_sigtrap(pid_t pid)
 
 		case PTRACE_LWP_EXIT:
 			TRACE_LWPEXITED(pid, lid, pst.pe_lwp);
+			break;
+
+		case PTRACE_POSIX_SPAWN:
+			TRACE_SPAWNED(pid, lid, pst.pe_other_pid);
 			break;
 		}
 		break;

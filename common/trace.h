@@ -56,6 +56,7 @@ typedef void (*trace_vforked_func_t)(pid_t, lwpid_t, pid_t);
 typedef void (*trace_vforkdone_func_t)(pid_t, lwpid_t, pid_t);
 typedef void (*trace_lwpcreated_func_t)(pid_t, lwpid_t, lwpid_t);
 typedef void (*trace_lwpexited_func_t)(pid_t, lwpid_t, lwpid_t);
+typedef void (*trace_spawned_func_t)(pid_t, lwpid_t, pid_t);
 typedef void (*trace_crashed_func_t)(pid_t, lwpid_t, siginfo_t *);
 typedef void (*trace_stopped_func_t)(pid_t, lwpid_t, siginfo_t *);
 
@@ -79,6 +80,7 @@ struct trace_ops {
 	trace_vforkdone_func_t vforkdone;
 	trace_lwpcreated_func_t lwpcreated;
 	trace_lwpexited_func_t lwpexited;
+	trace_spawned_func_t spawned;
 	trace_crashed_func_t crashed;
 	trace_stopped_func_t stopped;
 };
