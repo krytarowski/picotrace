@@ -160,10 +160,8 @@ count_startup(pid_t pid)
 
 	if (mode & MODE_INHERIT) {
 		pe.pe_set_event |= PTRACE_FORK;
-#if 0
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
-#endif
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
