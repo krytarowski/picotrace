@@ -131,10 +131,8 @@ coredumper_startup(pid_t pid)
 
 	if (inherit) {
 		pe.pe_set_event |= PTRACE_FORK;
-#if 0
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
-#endif
 	}
 
 	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
