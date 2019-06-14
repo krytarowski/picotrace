@@ -1,6 +1,5 @@
 KNOWN KERNEL BUGS
 
- - vfork is unstable and temporarily disabled
  - attaching to a sleeping process, terminates it
  - stopped process with SIGSTOP/SIGTSTP/SIGTTIN/SIGTTOU does not process SIGCONT from other sources
  - multiple events reported to a debugger in the same time result in reporting a single event and dropping the others
