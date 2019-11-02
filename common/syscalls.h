@@ -33,12 +33,12 @@
  * THIS FILE HAS BEEN GENERATED
  * ! ! DO NOT EDIT MANUALLY ! !
  *
- * Created from: NetBSD: syscall.h,v 1.307 2018/08/10 21:47:16 pgoyette Exp 
+ * Created from: NetBSD: syscall.h,v 1.308 2019/09/22 23:03:21 christos Exp 
  */
 
 #include <stddef.h>
 
-static const size_t max_syscall_number = 482;
+static const size_t max_syscall_number = 486;
 
 static const struct {
 	ssize_t nargs;
@@ -401,9 +401,9 @@ static const struct {
 	/* 353 */  { -1, NULL, NULL },
 	/* 354 */  { 4, "fsync_range", "int" },
 	/* 355 */  { 2, "uuidgen", "int" },
-	/* 356 */  { 3, "getvfsstat", "int" },
-	/* 357 */  { 3, "statvfs1", "int" },
-	/* 358 */  { 3, "fstatvfs1", "int" },
+	/* 356 */  { 3, "compat_90_getvfsstat", "int" },
+	/* 357 */  { 3, "compat_90_statvfs1", "int" },
+	/* 358 */  { 3, "compat_90_fstatvfs1", "int" },
 	/* 359 */  { 3, "compat_30_fhstatvfs1", "int" },
 	/* 360 */  { 5, "extattrctl", "int" },
 	/* 361 */  { 5, "extattr_set_file", "int" },
@@ -442,7 +442,7 @@ static const struct {
 	/* 394 */  { 3, "__socket30", "int" },
 	/* 395 */  { 3, "__getfh30", "int" },
 	/* 396 */  { 3, "__fhopen40", "int" },
-	/* 397 */  { 4, "__fhstatvfs140", "int" },
+	/* 397 */  { 4, "compat_90_fhstatvfs1", "int" },
 	/* 398 */  { 3, "compat_50___fhstat40", "int" },
 	/* 399 */  { 2, "aio_cancel", "int" },
 	/* 400 */  { 1, "aio_error", "int" },
@@ -528,4 +528,8 @@ static const struct {
 	/* 480 */  { 4, "fdiscard", "int" },
 	/* 481 */  { 6, "wait6", "int" },
 	/* 482 */  { 3, "clock_getcpuclockid2", "int" },
+	/* 483 */  { 3, "__getvfsstat90", "int" },
+	/* 484 */  { 3, "__statvfs190", "int" },
+	/* 485 */  { 3, "__fstatvfs190", "int" },
+	/* 486 */  { 4, "__fhstatvfs190", "int" },
 };
