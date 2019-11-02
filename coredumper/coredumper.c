@@ -133,6 +133,7 @@ coredumper_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_FORK;
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	xptrace(PT_SET_EVENT_MASK, pid, &pe, sizeof(pe));
@@ -286,6 +287,27 @@ coredumper_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 }
 
 static void
+coredumper_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	int status;
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
+}
+
+static void
 coredumper_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
 
@@ -429,6 +451,7 @@ struct trace_ops ops = {
 	.vforkdone = coredumper_vforkdone,
 	.lwpcreated = coredumper_lwpcreated,
 	.lwpexited = coredumper_lwpexited,
+	.spawned = coredumper_spawned,
 	.crashed = coredumper_crashed,
 	.stopped = coredumper_stopped
 };
