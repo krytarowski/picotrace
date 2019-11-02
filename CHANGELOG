@@ -1,3 +1,13 @@
+20191102
+
+* set minimal version to NetBSD 9.0
+* picotrace: support POSIX_SPAWN
+* common: Regenerate for syscall.h 1.308
+* truss: support POSIX_SPAWN
+* coredumper: support POSIX_SPAWN
+* singlestepper: support POSIX_SPAWN
+
+
 20190526
 
 * picotrace: enhance spelling and formatting of the documentation.
