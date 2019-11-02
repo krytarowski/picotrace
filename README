@@ -1,6 +1,6 @@
 This repository contains various NetBSD tracers.
 
-All of the programs are designed to run on NetBSD 8.99.45 or newer.
+All of the programs are designed to run on NetBSD 9.0 or newer.
 
 picotrace
 =========
