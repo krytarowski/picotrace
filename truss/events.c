@@ -148,6 +148,7 @@ events_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_FORK;
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
@@ -390,6 +391,31 @@ events_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 }
 
 static void
+events_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	int status;
+
+	assert(mode & MODE_INHERIT);
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
+
+	xtimespec_get(&previous_ts, TIME_UTC);
+}
+
+static void
 events_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
 	char buf[512];
@@ -492,6 +518,7 @@ setup_ops(void)
 	ops.vforkdone = events_vforkdone;
 	ops.lwpcreated = events_lwpcreated;
 	ops.lwpexited = events_lwpexited;
+	ops.spawned = events_spawned;
 	ops.crashed = events_crashed;
 	ops.stopped = events_stopped;
 }

@@ -162,6 +162,7 @@ count_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_FORK;
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
@@ -395,6 +396,27 @@ count_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 }
 
 static void
+count_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	int status;
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
+}
+
+static void
 count_crashed(pid_t pid, lwpid_t lid, siginfo_t *si)
 {
 }
@@ -426,6 +448,7 @@ setup_ops(void)
 	ops.vforkdone = count_vforkdone;
 	ops.lwpcreated = count_lwpcreated;
 	ops.lwpexited = count_lwpexited;
+	ops.spawned = count_spawned;
 	ops.crashed = count_crashed;
 	ops.stopped = count_stopped;
 }
