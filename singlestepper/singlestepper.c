@@ -165,6 +165,7 @@ singlestepper_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_FORK;
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
@@ -338,6 +339,27 @@ singlestepper_lwpcreated(pid_t pid, lwpid_t lid, lwpid_t lwp)
 static void
 singlestepper_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 {
+}
+
+static void
+singlestepper_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	int status;
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
 }
 
 static void
@@ -535,6 +557,7 @@ struct trace_ops ops = {
 	.vforkdone = singlestepper_vforkdone,
 	.lwpcreated = singlestepper_lwpcreated,
 	.lwpexited = singlestepper_lwpexited,
+	.spawned = singlestepper_spawned,
 	.crashed = singlestepper_crashed,
 	.stopped = singlestepper_stopped
 };
