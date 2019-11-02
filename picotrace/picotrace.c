@@ -155,6 +155,7 @@ picotrace_startup(pid_t pid)
 		pe.pe_set_event |= PTRACE_FORK;
 		pe.pe_set_event |= PTRACE_VFORK;
 		pe.pe_set_event |= PTRACE_VFORK_DONE;
+		pe.pe_set_event |= PTRACE_POSIX_SPAWN;
 	}
 
 	pe.pe_set_event |= PTRACE_LWP_CREATE;
@@ -515,6 +516,34 @@ picotrace_lwpexited(pid_t pid, lwpid_t lid, lwpid_t lwp)
 	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
 
 	xsl_addf(sl, "LWP_EXITED lwp=%d\n", lwp);
+	xsl_fdump(sl, output);
+}
+
+static void
+picotrace_spawned(pid_t pid, lwpid_t lid, pid_t child)
+{
+	StringList *sl;
+	int status;
+
+	sl = xsl_initf("%6d %6d %14s ", pid, lid, pid_ctx->name);
+
+	xwaitpid(child, &status, 0);
+
+	if (!WIFSTOPPED(status)) {
+		warnx("waitpid(%d) returned non-stopped child", child);
+		return;
+	}
+
+	if (WSTOPSIG(status) != SIGTRAP) {
+		warnx("waitpid(%d) returned unexpected signal %s", child,
+		    signalname(WSTOPSIG(status)));
+		return;
+	}
+
+	launch_worker(child);
+
+	xsl_addf(sl, "SPAWNED child=%d\n", child);
+
 	xsl_fdump(sl, output);
 }
 
@@ -1046,6 +1075,7 @@ struct trace_ops ops = {
 	.vforkdone = picotrace_vforkdone,
 	.lwpcreated = picotrace_lwpcreated,
 	.lwpexited = picotrace_lwpexited,
+	.spawned = picotrace_spawned,
 	.crashed = picotrace_crashed,
 	.stopped = picotrace_stopped
 };
