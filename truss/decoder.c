@@ -101,29 +101,29 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 	SPRINTF("%s(", syscall_info[si->si_sysnum].name);
 
 	switch (si->si_sysnum) {
-	case SYS_syscall: /* 0 */
+	case 0: /* SYS_syscall */
 		/* Shall not happen */
 		break;
-	case SYS_exit: /* 1 */
+	case 1: /* SYS_exit */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_fork: /* 2 */
+	case 2: /* SYS_fork */
 		break;
-	case SYS_read: /* 3 */
+	case 3: /* SYS_read */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
 		    si->si_args[2]);
 		SPRINTF("%d, %s, %zu", (int)si->si_args[0], s,
 		    (size_t)si->si_args[2]);
 		free(s);
 		break;
-	case SYS_write: /* 4 */
+	case 4: /* SYS_write */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[1],
 		    si->si_args[2]);
 		SPRINTF("%d, %s, %zu", (int)si->si_args[0], s,
 		    (size_t)si->si_args[2]);
 		free(s);
 		break;
-	case SYS_open: /* 5 */
+	case 5: /* SYS_open */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -162,14 +162,14 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 			free(s);
 		}
 		break;
-	case SYS_close: /* 6 */
+	case 6: /* SYS_close */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_compat_50_wait4: /* 7 */
+	case 7: /* SYS_compat_50_wait4 */
 		break;
-	case SYS_compat_43_ocreat: /* 8 */
+	case 8: /* SYS_compat_43_ocreat */
 		break;
-	case SYS_link: /* 9 */
+	case 9: /* SYS_link */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -177,22 +177,22 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS_unlink: /* 10 */
+	case 10: /* SYS_unlink */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS_chdir: /* 12 */
+	case 12: /* SYS_chdir */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS_fchdir: /* 13 */
+	case 13: /* SYS_fchdir */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_compat_50_mknod: /* 14 */
+	case 14: /* SYS_compat_50_mknod */
 		break;
-	case SYS_chmod: /* 15 */
+	case 15: /* SYS_chmod */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -201,25 +201,25 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", \"%s\"", s);
 		free(s);
 		break;
-	case SYS_chown: /* 16 */
+	case 16: /* SYS_chown */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, %d, %d", s, (int)si->si_args[1],
 		    (int)si->si_args[2]);
 		free(s);
 		break;
-	case SYS_break: /* 17 */
+	case 17: /* SYS_break */
 		SPRINTF("%p", (void *)(intptr_t)si->si_args[0]);
 		break;
-	case SYS_compat_20_getfsstat: /* 18 */
+	case 18: /* SYS_compat_20_getfsstat */
 		break;
-	case SYS_compat_43_olseek: /* 19 */
+	case 19: /* SYS_compat_43_olseek */
 		break;
-	case SYS_getpid: /* 20 */
+	case 20: /* SYS_getpid */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_compat_40_mount: /* 21 */
+	case 21: /* SYS_compat_40_mount */
 		break;
-	case SYS_unmount: /* 22 */
+	case 22: /* SYS_unmount */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, 0", s);
 		free(s);
@@ -259,16 +259,16 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		check_flag(MNT_GETARGS);
 #undef check_flag
 		break;
-	case SYS_setuid: /* 23 */
+	case 23: /* SYS_setuid */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_getuid: /* 24 */
+	case 24: /* SYS_getuid */
 		/* No arguments */
 		break;
-	case SYS_geteuid: /* 25 */
+	case 25: /* SYS_geteuid */
 		/* No arguments */
 		break;
-	case SYS_ptrace: /* 26 */
+	case 26: /* SYS_ptrace */
 #define check_flag(flag) case flag: SPRINTF(#flag); break
 		switch (si->si_args[0]) {
 		check_flag(PT_TRACE_ME);
@@ -322,7 +322,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", %d, %p, %d", (int)si->si_args[1],
 		    (void *)(intptr_t)si->si_args[2], (int)si->si_args[3]);
 		break;
-	case SYS_recvmsg: /* 27 */
+	case 27: /* SYS_recvmsg */
 		SPRINTF("%d, %p, 0", (int)si->si_args[0],
 		    (void *)(intptr_t)si->si_args[1]);
 #define check_flag(flag) if (si->si_args[2] & flag) SPRINTF("|" #flag)
@@ -347,17 +347,17 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		check_flag(MSG_LENUSRSPACE);
 #undef check_flag
 		break;
-	case SYS_sendmsg: /* 28 */
+	case 28: /* SYS_sendmsg */
 		break;
-	case SYS_recvfrom: /* 29 */
+	case 29: /* SYS_recvfrom */
 		break;
-	case SYS_accept: /* 30 */
+	case 30: /* SYS_accept */
 		break;
-	case SYS_getpeername: /* 31 */
+	case 31: /* SYS_getpeername */
 		break;
-	case SYS_getsockname: /* 32 */
+	case 32: /* SYS_getsockname */
 		break;
-	case SYS_access: /* 33 */
+	case 33: /* SYS_access */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s", s);
 		free(s);
@@ -366,58 +366,58 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", \"%s\"", s);
 		free(s);
 		break;
-	case SYS_chflags: /* 34 */
+	case 34: /* SYS_chflags */
 		break;
-	case SYS_fchflags: /* 35 */
+	case 35: /* SYS_fchflags */
 		break;
-	case SYS_sync: /* 36 */
+	case 36: /* SYS_sync */
 		break;
-	case SYS_kill: /* 37 */
+	case 37: /* SYS_kill */
 		break;
-	case SYS_compat_43_stat43: /* 38 */
+	case 38: /* SYS_compat_43_stat43 */
 		break;
-	case SYS_getppid: /* 39 */
+	case 39: /* SYS_getppid */
 		break;
-	case SYS_compat_43_lstat43: /* 40 */
+	case 40: /* SYS_compat_43_lstat43 */
 		break;
-	case SYS_dup: /* 41 */
+	case 41: /* SYS_dup */
 		SPRINTF("%d", (int)si->si_args[0]);
 		break;
-	case SYS_pipe: /* 42 */
+	case 42: /* SYS_pipe */
 		break;
-	case SYS_getegid: /* 43 */
+	case 43: /* SYS_getegid */
 		break;
-	case SYS_profil: /* 44 */
+	case 44: /* SYS_profil */
 		break;
-	case SYS_ktrace: /* 45 */
+	case 45: /* SYS_ktrace */
 		break;
-	case SYS_compat_13_sigaction13: /* 46 */
+	case 46: /* SYS_compat_13_sigaction13 */
 		break;
-	case SYS_getgid: /* 47 */
+	case 47: /* SYS_getgid */
 		break;
-	case SYS_compat_13_sigprocmask13: /* 48 */
+	case 48: /* SYS_compat_13_sigprocmask13 */
 		break;
-	case SYS___getlogin: /* 49 */
+	case 49: /* SYS___getlogin */
 		break;
-	case SYS___setlogin: /* 50 */
+	case 50: /* SYS___setlogin */
 		break;
-	case SYS_acct: /* 51 */
+	case 51: /* SYS_acct */
 		break;
-	case SYS_compat_13_sigpending13: /* 52 */
+	case 52: /* SYS_compat_13_sigpending13 */
 		break;
-	case SYS_compat_13_sigaltstack13: /* 53 */
+	case 53: /* SYS_compat_13_sigaltstack13 */
 		break;
-	case SYS_ioctl: /* 54 */
+	case 54: /* SYS_ioctl */
 		SPRINTF("%d, %lu, ...", (int)si->si_args[0],
 		    (unsigned long)si->si_args[1]);
 		break;
-	case SYS_compat_12_oreboot: /* 55 */
+	case 55: /* SYS_compat_12_oreboot */
 		break;
-	case SYS_revoke: /* 56 */
+	case 56: /* SYS_revoke */
 		break;
-	case SYS_symlink: /* 57 */
+	case 57: /* SYS_symlink */
 		break;
-	case SYS_readlink: /* 58 */
+	case 58: /* SYS_readlink */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -441,31 +441,31 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 
 		SPRINTF("%zu", (size_t)si->si_args[2]);
 		break;
-	case SYS_execve: /* 59 */
+	case 59: /* SYS_execve */
 		break;
-	case SYS_umask: /* 60 */
+	case 60: /* SYS_umask */
 		break;
-	case SYS_chroot: /* 61 */
+	case 61: /* SYS_chroot */
 		break;
-	case SYS_compat_43_fstat43: /* 62 */
+	case 62: /* SYS_compat_43_fstat43 */
 		break;
-	case SYS_compat_43_ogetkerninfo: /* 63 */
+	case 63: /* SYS_compat_43_ogetkerninfo */
 		break;
-	case SYS_compat_43_ogetpagesize: /* 64 */
+	case 64: /* SYS_compat_43_ogetpagesize */
 		break;
-	case SYS_compat_12_msync: /* 65 */
+	case 65: /* SYS_compat_12_msync */
 		break;
-	case SYS_vfork: /* 66 */
+	case 66: /* SYS_vfork */
 		break;
-	case SYS_compat_43_ommap: /* 71 */
+	case 71: /* SYS_compat_43_ommap */
 		break;
-	case SYS_vadvise: /* 72 */
+	case 72: /* SYS_vadvise */
 		break;
-	case SYS_munmap: /* 73 */
+	case 73: /* SYS_munmap */
 		SPRINTF("%p, %zu", (void *)(intptr_t)si->si_args[0],
 		    (size_t)si->si_args[1]);
 		break;
-	case SYS_mprotect: /* 74 */
+	case 74: /* SYS_mprotect */
 		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
 		    (size_t)si->si_args[1]);
 		if (si->si_args[2] & (PROT_EXEC|PROT_READ|PROT_WRITE)) {
@@ -485,7 +485,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		check_flag(PROT_WRITE);
 #undef check_flag
 		break;
-	case SYS_madvise: /* 75 */
+	case 75: /* SYS_madvise */
 		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
 		    (size_t)si->si_args[1]);
 #define check_flag(flag) case flag: SPRINTF(#flag); break
@@ -500,208 +500,208 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		}
 #undef check_flag
 		break;
-	case SYS_mincore: /* 78 */
+	case 78: /* SYS_mincore */
 		break;
-	case SYS_getgroups: /* 79 */
+	case 79: /* SYS_getgroups */
 		break;
-	case SYS_setgroups: /* 80 */
+	case 80: /* SYS_setgroups */
 		break;
-	case SYS_getpgrp: /* 81 */
+	case 81: /* SYS_getpgrp */
 		break;
-	case SYS_setpgid: /* 82 */
+	case 82: /* SYS_setpgid */
 		break;
-	case SYS_compat_50_setitimer: /* 83 */
+	case 83: /* SYS_compat_50_setitimer */
 		break;
-	case SYS_compat_43_owait: /* 84 */
+	case 84: /* SYS_compat_43_owait */
 		break;
-	case SYS_compat_12_oswapon: /* 85 */
+	case 85: /* SYS_compat_12_oswapon */
 		break;
-	case SYS_compat_50_getitimer: /* 86 */
+	case 86: /* SYS_compat_50_getitimer */
 		break;
-	case SYS_compat_43_ogethostname: /* 87 */
+	case 87: /* SYS_compat_43_ogethostname */
 		break;
-	case SYS_compat_43_osethostname: /* 88 */
+	case 88: /* SYS_compat_43_osethostname */
 		break;
-	case SYS_compat_43_ogetdtablesize: /* 89 */
+	case 89: /* SYS_compat_43_ogetdtablesize */
 		break;
-	case SYS_dup2: /* 90 */
+	case 90: /* SYS_dup2 */
 		SPRINTF("%d, %d", (int)si->si_args[0], (int)si->si_args[1]);
 		break;
-	case SYS_fcntl: /* 92 */
+	case 92: /* SYS_fcntl */
 		break;
-	case SYS_compat_50_select: /* 93 */
+	case 93: /* SYS_compat_50_select */
 		break;
-	case SYS_fsync: /* 95 */
+	case 95: /* SYS_fsync */
 		break;
-	case SYS_setpriority: /* 96 */
+	case 96: /* SYS_setpriority */
 		break;
-	case SYS_compat_30_socket: /* 97 */
+	case 97: /* SYS_compat_30_socket */
 		break;
-	case SYS_connect: /* 98 */
+	case 98: /* SYS_connect */
 		break;
-	case SYS_compat_43_oaccept: /* 99 */
+	case 99: /* SYS_compat_43_oaccept */
 		break;
-	case SYS_getpriority: /* 100 */
+	case 100: /* SYS_getpriority */
 		break;
-	case SYS_compat_43_osend: /* 101 */
+	case 101: /* SYS_compat_43_osend */
 		break;
-	case SYS_compat_43_orecv: /* 102 */
+	case 102: /* SYS_compat_43_orecv */
 		break;
-	case SYS_compat_13_sigreturn13: /* 103 */
+	case 103: /* SYS_compat_13_sigreturn13 */
 		break;
-	case SYS_bind: /* 104 */
+	case 104: /* SYS_bind */
 		break;
-	case SYS_setsockopt: /* 105 */
+	case 105: /* SYS_setsockopt */
 		break;
-	case SYS_listen: /* 106 */
+	case 106: /* SYS_listen */
 		break;
-	case SYS_compat_43_osigvec: /* 108 */
+	case 108: /* SYS_compat_43_osigvec */
 		break;
-	case SYS_compat_43_osigblock: /* 109 */
+	case 109: /* SYS_compat_43_osigblock */
 		break;
-	case SYS_compat_43_osigsetmask: /* 110 */
+	case 110: /* SYS_compat_43_osigsetmask */
 		break;
-	case SYS_compat_13_sigsuspend13: /* 111 */
+	case 111: /* SYS_compat_13_sigsuspend13 */
 		break;
-	case SYS_compat_43_osigstack: /* 112 */
+	case 112: /* SYS_compat_43_osigstack */
 		break;
-	case SYS_compat_43_orecvmsg: /* 113 */
+	case 113: /* SYS_compat_43_orecvmsg */
 		break;
-	case SYS_compat_43_osendmsg: /* 114 */
+	case 114: /* SYS_compat_43_osendmsg */
 		break;
-	case SYS_compat_50_gettimeofday: /* 116 */
+	case 116: /* SYS_compat_50_gettimeofday */
 		break;
-	case SYS_compat_50_getrusage: /* 117 */
+	case 117: /* SYS_compat_50_getrusage */
 		break;
-	case SYS_getsockopt: /* 118 */
+	case 118: /* SYS_getsockopt */
 		break;
-	case SYS_readv: /* 120 */
+	case 120: /* SYS_readv */
 		break;
-	case SYS_writev: /* 121 */
+	case 121: /* SYS_writev */
 		break;
-	case SYS_compat_50_settimeofday: /* 122 */
+	case 122: /* SYS_compat_50_settimeofday */
 		break;
-	case SYS_fchown: /* 123 */
+	case 123: /* SYS_fchown */
 		break;
-	case SYS_fchmod: /* 124 */
+	case 124: /* SYS_fchmod */
 		break;
-	case SYS_compat_43_orecvfrom: /* 125 */
+	case 125: /* SYS_compat_43_orecvfrom */
 		break;
-	case SYS_setreuid: /* 126 */
+	case 126: /* SYS_setreuid */
 		break;
-	case SYS_setregid: /* 127 */
+	case 127: /* SYS_setregid */
 		break;
-	case SYS_rename: /* 128 */
+	case 128: /* SYS_rename */
 		break;
-	case SYS_compat_43_otruncate: /* 129 */
+	case 129: /* SYS_compat_43_otruncate */
 		break;
-	case SYS_compat_43_oftruncate: /* 130 */
+	case 130: /* SYS_compat_43_oftruncate */
 		break;
-	case SYS_flock: /* 131 */
+	case 131: /* SYS_flock */
 		break;
-	case SYS_mkfifo: /* 132 */
+	case 132: /* SYS_mkfifo */
 		break;
-	case SYS_sendto: /* 133 */
+	case 133: /* SYS_sendto */
 		break;
-	case SYS_shutdown: /* 134 */
+	case 134: /* SYS_shutdown */
 		break;
-	case SYS_socketpair: /* 135 */
+	case 135: /* SYS_socketpair */
 		break;
-	case SYS_mkdir: /* 136 */
+	case 136: /* SYS_mkdir */
 		break;
-	case SYS_rmdir: /* 137 */
+	case 137: /* SYS_rmdir */
 		break;
-	case SYS_compat_50_utimes: /* 138 */
+	case 138: /* SYS_compat_50_utimes */
 		break;
-	case SYS_compat_50_adjtime: /* 140 */
+	case 140: /* SYS_compat_50_adjtime */
 		break;
-	case SYS_compat_43_ogetpeername: /* 141 */
+	case 141: /* SYS_compat_43_ogetpeername */
 		break;
-	case SYS_compat_43_ogethostid: /* 142 */
+	case 142: /* SYS_compat_43_ogethostid */
 		break;
-	case SYS_compat_43_osethostid: /* 143 */
+	case 143: /* SYS_compat_43_osethostid */
 		break;
-	case SYS_compat_43_ogetrlimit: /* 144 */
+	case 144: /* SYS_compat_43_ogetrlimit */
 		break;
-	case SYS_compat_43_osetrlimit: /* 145 */
+	case 145: /* SYS_compat_43_osetrlimit */
 		break;
-	case SYS_compat_43_okillpg: /* 146 */
+	case 146: /* SYS_compat_43_okillpg */
 		break;
-	case SYS_setsid: /* 147 */
+	case 147: /* SYS_setsid */
 		break;
-	case SYS_compat_50_quotactl: /* 148 */
+	case 148: /* SYS_compat_50_quotactl */
 		break;
-	case SYS_compat_43_oquota: /* 149 */
+	case 149: /* SYS_compat_43_oquota */
 		break;
-	case SYS_compat_43_ogetsockname: /* 150 */
+	case 150: /* SYS_compat_43_ogetsockname */
 		break;
-	case SYS_nfssvc: /* 155 */
+	case 155: /* SYS_nfssvc */
 		break;
-	case SYS_compat_43_ogetdirentries: /* 156 */
+	case 156: /* SYS_compat_43_ogetdirentries */
 		break;
-	case SYS_compat_20_statfs: /* 157 */
+	case 157: /* SYS_compat_20_statfs */
 		break;
-	case SYS_compat_20_fstatfs: /* 158 */
+	case 158: /* SYS_compat_20_fstatfs */
 		break;
-	case SYS_compat_30_getfh: /* 161 */
+	case 161: /* SYS_compat_30_getfh */
 		break;
-	case SYS_compat_09_ogetdomainname: /* 162 */
+	case 162: /* SYS_compat_09_ogetdomainname */
 		break;
-	case SYS_compat_09_osetdomainname: /* 163 */
+	case 163: /* SYS_compat_09_osetdomainname */
 		break;
-	case SYS_compat_09_ouname: /* 164 */
+	case 164: /* SYS_compat_09_ouname */
 		break;
-	case SYS_sysarch: /* 165 */
+	case 165: /* SYS_sysarch */
 		break;
 #if !defined(_LP64)
-	case SYS_compat_10_osemsys: /* 169 */
+	case 169: /* SYS_compat_10_osemsys */
 		break;
-	case SYS_compat_10_omsgsys: /* 170 */
+	case 170: /* SYS_compat_10_omsgsys */
 		break;
-	case SYS_compat_10_oshmsys: /* 171 */
+	case 171: /* SYS_compat_10_oshmsys */
 		break;
 #endif
-	case SYS_pread: /* 173 */
+	case 173: /* SYS_pread */
 		break;
-	case SYS_pwrite: /* 174 */
+	case 174: /* SYS_pwrite */
 		break;
-	case SYS_compat_30_ntp_gettime: /* 175 */
+	case 175: /* SYS_compat_30_ntp_gettime */
 		break;
-	case SYS_ntp_adjtime: /* 176 */
+	case 176: /* SYS_ntp_adjtime */
 		break;
-	case SYS_setgid: /* 181 */
+	case 181: /* SYS_setgid */
 		break;
-	case SYS_setegid: /* 182 */
+	case 182: /* SYS_setegid */
 		break;
-	case SYS_seteuid: /* 183 */
+	case 183: /* SYS_seteuid */
 		break;
-	case SYS_lfs_bmapv: /* 184 */
+	case 184: /* SYS_lfs_bmapv */
 		break;
-	case SYS_lfs_markv: /* 185 */
+	case 185: /* SYS_lfs_markv */
 		break;
-	case SYS_lfs_segclean: /* 186 */
+	case 186: /* SYS_lfs_segclean */
 		break;
-	case SYS_compat_50_lfs_segwait: /* 187 */
+	case 187: /* SYS_compat_50_lfs_segwait */
 		break;
-	case SYS_compat_12_stat12: /* 188 */
+	case 188: /* SYS_compat_12_stat12 */
 		break;
-	case SYS_compat_12_fstat12: /* 189 */
+	case 189: /* SYS_compat_12_fstat12 */
 		break;
-	case SYS_compat_12_lstat12: /* 190 */
+	case 190: /* SYS_compat_12_lstat12 */
 		break;
-	case SYS_pathconf: /* 191 */
+	case 191: /* SYS_pathconf */
 		break;
-	case SYS_fpathconf: /* 192 */
+	case 192: /* SYS_fpathconf */
 		break;
-	case SYS_getsockopt2: /* 193 */
+	case 193: /* SYS_getsockopt2 */
 		break;
-	case SYS_getrlimit: /* 194 */
+	case 194: /* SYS_getrlimit */
 		break;
-	case SYS_setrlimit: /* 195 */
+	case 195: /* SYS_setrlimit */
 		break;
-	case SYS_compat_12_getdirentries: /* 196 */
+	case 196: /* SYS_compat_12_getdirentries */
 		break;
-	case SYS_mmap: /* 197 */
+	case 197: /* SYS_mmap */
 		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
 		    (size_t)si->si_args[1]);
 		if (si->si_args[2] & (PROT_EXEC|PROT_READ|PROT_WRITE)) {
@@ -744,9 +744,9 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", %d, %zd", (int)si->si_args[4],
 		    (ssize_t)si->si_args[6]);
 		break;
-	case SYS___syscall: /* 198 */
+	case 198: /* SYS___syscall */
 		break;
-	case SYS_lseek: /* 199 */
+	case 199: /* SYS_lseek */
 		SPRINTF("%d, %zd, ", (int)si->si_args[0],
 		    (ssize_t)si->si_args[1]);
 #define check_flag(flag) case flag: SPRINTF(#flag); break
@@ -757,11 +757,11 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		}
 #undef check_flag
 		break;
-	case SYS_truncate: /* 200 */
+	case 200: /* SYS_truncate */
 		break;
-	case SYS_ftruncate: /* 201 */
+	case 201: /* SYS_ftruncate */
 		break;
-	case SYS___sysctl: /* 202 */
+	case 202: /* SYS___sysctl */
 		if (si->si_args[1] > 0)
 			v = copyin(pid, (void *)(intptr_t)si->si_args[0],
 			    sizeof(int) * si->si_args[1]);
@@ -787,163 +787,163 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		    (void *)(intptr_t)si->si_args[4],
 		    (size_t)si->si_args[5]);
 		break;
-	case SYS_mlock: /* 203 */
+	case 203: /* SYS_mlock */
 		break;
-	case SYS_munlock: /* 204 */
+	case 204: /* SYS_munlock */
 		break;
-	case SYS_undelete: /* 205 */
+	case 205: /* SYS_undelete */
 		break;
-	case SYS_compat_50_futimes: /* 206 */
+	case 206: /* SYS_compat_50_futimes */
 		break;
-	case SYS_getpgid: /* 207 */
+	case 207: /* SYS_getpgid */
 		break;
-	case SYS_reboot: /* 208 */
+	case 208: /* SYS_reboot */
 		break;
-	case SYS_poll: /* 209 */
+	case 209: /* SYS_poll */
 		break;
-	case SYS_afssys: /* 210 */
+	case 210: /* SYS_afssys */
 		break;
-	case SYS_compat_14___semctl: /* 220 */
+	case 220: /* SYS_compat_14___semctl */
 		break;
-	case SYS_semget: /* 221 */
+	case 221: /* SYS_semget */
 		break;
-	case SYS_semop: /* 222 */
+	case 222: /* SYS_semop */
 		break;
-	case SYS_semconfig: /* 223 */
+	case 223: /* SYS_semconfig */
 		break;
-	case SYS_compat_14_msgctl: /* 224 */
+	case 224: /* SYS_compat_14_msgctl */
 		break;
-	case SYS_msgget: /* 225 */
+	case 225: /* SYS_msgget */
 		break;
-	case SYS_msgsnd: /* 226 */
+	case 226: /* SYS_msgsnd */
 		break;
-	case SYS_msgrcv: /* 227 */
+	case 227: /* SYS_msgrcv */
 		break;
-	case SYS_shmat: /* 228 */
+	case 228: /* SYS_shmat */
 		break;
-	case SYS_compat_14_shmctl: /* 229 */
+	case 229: /* SYS_compat_14_shmctl */
 		break;
-	case SYS_shmdt: /* 230 */
+	case 230: /* SYS_shmdt */
 		break;
-	case SYS_shmget: /* 231 */
+	case 231: /* SYS_shmget */
 		break;
-	case SYS_compat_50_clock_gettime: /* 232 */
+	case 232: /* SYS_compat_50_clock_gettime */
 		break;
-	case SYS_compat_50_clock_settime: /* 233 */
+	case 233: /* SYS_compat_50_clock_settime */
 		break;
-	case SYS_compat_50_clock_getres: /* 234 */
+	case 234: /* SYS_compat_50_clock_getres */
 		break;
-	case SYS_timer_create: /* 235 */
+	case 235: /* SYS_timer_create */
 		break;
-	case SYS_timer_delete: /* 236 */
+	case 236: /* SYS_timer_delete */
 		break;
-	case SYS_compat_50_timer_settime: /* 237 */
+	case 237: /* SYS_compat_50_timer_settime */
 		break;
-	case SYS_compat_50_timer_gettime: /* 238 */
+	case 238: /* SYS_compat_50_timer_gettime */
 		break;
-	case SYS_timer_getoverrun: /* 239 */
+	case 239: /* SYS_timer_getoverrun */
 		break;
-	case SYS_compat_50_nanosleep: /* 240 */
+	case 240: /* SYS_compat_50_nanosleep */
 		break;
-	case SYS_fdatasync: /* 241 */
+	case 241: /* SYS_fdatasync */
 		break;
-	case SYS_mlockall: /* 242 */
+	case 242: /* SYS_mlockall */
 		break;
-	case SYS_munlockall: /* 243 */
+	case 243: /* SYS_munlockall */
 		break;
-	case SYS_compat_50___sigtimedwait: /* 244 */
+	case 244: /* SYS_compat_50___sigtimedwait */
 		break;
-	case SYS_sigqueueinfo: /* 245 */
+	case 245: /* SYS_sigqueueinfo */
 		break;
-	case SYS_modctl: /* 246 */
+	case 246: /* SYS_modctl */
 		break;
-	case SYS__ksem_init: /* 247 */
+	case 247: /* SYS__ksem_init */
 		break;
-	case SYS__ksem_open: /* 248 */
+	case 248: /* SYS__ksem_open */
 		break;
-	case SYS__ksem_unlink: /* 249 */
+	case 249: /* SYS__ksem_unlink */
 		break;
-	case SYS__ksem_close: /* 250 */
+	case 250: /* SYS__ksem_close */
 		break;
-	case SYS__ksem_post: /* 251 */
+	case 251: /* SYS__ksem_post */
 		break;
-	case SYS__ksem_wait: /* 252 */
+	case 252: /* SYS__ksem_wait */
 		break;
-	case SYS__ksem_trywait: /* 253 */
+	case 253: /* SYS__ksem_trywait */
 		break;
-	case SYS__ksem_getvalue: /* 254 */
+	case 254: /* SYS__ksem_getvalue */
 		break;
-	case SYS__ksem_destroy: /* 255 */
+	case 255: /* SYS__ksem_destroy */
 		break;
-	case SYS__ksem_timedwait: /* 256 */
+	case 256: /* SYS__ksem_timedwait */
 		break;
-	case SYS_mq_open: /* 257 */
+	case 257: /* SYS_mq_open */
 		break;
-	case SYS_mq_close: /* 258 */
+	case 258: /* SYS_mq_close */
 		break;
-	case SYS_mq_unlink: /* 259 */
+	case 259: /* SYS_mq_unlink */
 		break;
-	case SYS_mq_getattr: /* 260 */
+	case 260: /* SYS_mq_getattr */
 		break;
-	case SYS_mq_setattr: /* 261 */
+	case 261: /* SYS_mq_setattr */
 		break;
-	case SYS_mq_notify: /* 262 */
+	case 262: /* SYS_mq_notify */
 		break;
-	case SYS_mq_send: /* 263 */
+	case 263: /* SYS_mq_send */
 		break;
-	case SYS_mq_receive: /* 264 */
+	case 264: /* SYS_mq_receive */
 		break;
-	case SYS_compat_50_mq_timedsend: /* 265 */
+	case 265: /* SYS_compat_50_mq_timedsend */
 		break;
-	case SYS_compat_50_mq_timedreceive: /* 266 */
+	case 266: /* SYS_compat_50_mq_timedreceive */
 		break;
-	case SYS___posix_rename: /* 270 */
+	case 270: /* SYS___posix_rename */
 		break;
-	case SYS_swapctl: /* 271 */
+	case 271: /* SYS_swapctl */
 		break;
-	case SYS_compat_30_getdents: /* 272 */
+	case 272: /* SYS_compat_30_getdents */
 		break;
-	case SYS_minherit: /* 273 */
+	case 273: /* SYS_minherit */
 		break;
-	case SYS_lchmod: /* 274 */
+	case 274: /* SYS_lchmod */
 		break;
-	case SYS_lchown: /* 275 */
+	case 275: /* SYS_lchown */
 		break;
-	case SYS_compat_50_lutimes: /* 276 */
+	case 276: /* SYS_compat_50_lutimes */
 		break;
-	case SYS___msync13: /* 277 */
+	case 277: /* SYS___msync13 */
 		break;
-	case SYS_compat_30___stat13: /* 278 */
+	case 278: /* SYS_compat_30___stat13 */
 		break;
-	case SYS_compat_30___fstat13: /* 279 */
+	case 279: /* SYS_compat_30___fstat13 */
 		break;
-	case SYS_compat_30___lstat13: /* 280 */
+	case 280: /* SYS_compat_30___lstat13 */
 		break;
-	case SYS___sigaltstack14: /* 281 */
+	case 281: /* SYS___sigaltstack14 */
 		break;
-	case SYS___vfork14: /* 282 */
+	case 282: /* SYS___vfork14 */
 		break;
-	case SYS___posix_chown: /* 283 */
+	case 283: /* SYS___posix_chown */
 		break;
-	case SYS___posix_fchown: /* 284 */
+	case 284: /* SYS___posix_fchown */
 		break;
-	case SYS___posix_lchown: /* 285 */
+	case 285: /* SYS___posix_lchown */
 		break;
-	case SYS_getsid: /* 286 */
+	case 286: /* SYS_getsid */
 		break;
-	case SYS___clone: /* 287 */
+	case 287: /* SYS___clone */
 		break;
-	case SYS_fktrace: /* 288 */
+	case 288: /* SYS_fktrace */
 		break;
-	case SYS_preadv: /* 289 */
+	case 289: /* SYS_preadv */
 		break;
-	case SYS_pwritev: /* 290 */
+	case 290: /* SYS_pwritev */
 		break;
-	case SYS_compat_16___sigaction14: /* 291 */
+	case 291: /* SYS_compat_16___sigaction14 */
 		break;
-	case SYS___sigpending14: /* 292 */
+	case 292: /* SYS___sigpending14 */
 		break;
-	case SYS___sigprocmask14: /* 293 */
+	case 293: /* SYS___sigprocmask14 */
 #define check_flag(flag) case flag: SPRINTF(#flag); break
 		switch (si->si_args[0]) {
 		check_flag(SIG_BLOCK);
@@ -960,108 +960,108 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", %s", s);
 		free(s);
 		break;
-	case SYS___sigsuspend14: /* 294 */
+	case 294: /* SYS___sigsuspend14 */
 		break;
-	case SYS_compat_16___sigreturn14: /* 295 */
+	case 295: /* SYS_compat_16___sigreturn14 */
 		break;
-	case SYS___getcwd: /* 296 */
+	case 296: /* SYS___getcwd */
 		break;
-	case SYS_fchroot: /* 297 */
+	case 297: /* SYS_fchroot */
 		break;
-	case SYS_compat_30_fhopen: /* 298 */
+	case 298: /* SYS_compat_30_fhopen */
 		break;
-	case SYS_compat_30_fhstat: /* 299 */
+	case 299: /* SYS_compat_30_fhstat */
 		break;
-	case SYS_compat_20_fhstatfs: /* 300 */
+	case 300: /* SYS_compat_20_fhstatfs */
 		break;
-	case SYS_compat_50_____semctl13: /* 301 */
+	case 301: /* SYS_compat_50_____semctl13 */
 		break;
-	case SYS_compat_50___msgctl13: /* 302 */
+	case 302: /* SYS_compat_50___msgctl13 */
 		break;
-	case SYS_compat_50___shmctl13: /* 303 */
+	case 303: /* SYS_compat_50___shmctl13 */
 		break;
-	case SYS_lchflags: /* 304 */
+	case 304: /* SYS_lchflags */
 		break;
-	case SYS_issetugid: /* 305 */
+	case 305: /* SYS_issetugid */
 		break;
-	case SYS_utrace: /* 306 */
+	case 306: /* SYS_utrace */
 		break;
-	case SYS_getcontext: /* 307 */
+	case 307: /* SYS_getcontext */
 		break;
-	case SYS_setcontext: /* 308 */
+	case 308: /* SYS_setcontext */
 		break;
-	case SYS__lwp_create: /* 309 */
+	case 309: /* SYS__lwp_create */
 		break;
-	case SYS__lwp_exit: /* 310 */
+	case 310: /* SYS__lwp_exit */
 		break;
-	case SYS__lwp_self: /* 311 */
+	case 311: /* SYS__lwp_self */
 		break;
-	case SYS__lwp_wait: /* 312 */
+	case 312: /* SYS__lwp_wait */
 		break;
-	case SYS__lwp_suspend: /* 313 */
+	case 313: /* SYS__lwp_suspend */
 		break;
-	case SYS__lwp_continue: /* 314 */
+	case 314: /* SYS__lwp_continue */
 		break;
-	case SYS__lwp_wakeup: /* 315 */
+	case 315: /* SYS__lwp_wakeup */
 		break;
-	case SYS__lwp_getprivate: /* 316 */
+	case 316: /* SYS__lwp_getprivate */
 		break;
-	case SYS__lwp_setprivate: /* 317 */
+	case 317: /* SYS__lwp_setprivate */
 		SPRINTF("%p", (void *)(intptr_t)si->si_args[0]);
 		break;
-	case SYS__lwp_kill: /* 318 */
+	case 318: /* SYS__lwp_kill */
 		break;
-	case SYS__lwp_detach: /* 319 */
+	case 319: /* SYS__lwp_detach */
 		break;
-	case SYS_compat_50__lwp_park: /* 320 */
+	case 320: /* SYS_compat_50__lwp_park */
 		break;
-	case SYS__lwp_unpark: /* 321 */
+	case 321: /* SYS__lwp_unpark */
 		break;
-	case SYS__lwp_unpark_all: /* 322 */
+	case 322: /* SYS__lwp_unpark_all */
 		break;
-	case SYS__lwp_setname: /* 323 */
+	case 323: /* SYS__lwp_setname */
 		break;
-	case SYS__lwp_getname: /* 324 */
+	case 324: /* SYS__lwp_getname */
 		break;
-	case SYS__lwp_ctl: /* 325 */
+	case 325: /* SYS__lwp_ctl */
 		break;
-	case SYS_compat_60_sa_register: /* 330 */
+	case 330: /* SYS_compat_60_sa_register */
 		break;
-	case SYS_compat_60_sa_stacks: /* 331 */
+	case 331: /* SYS_compat_60_sa_stacks */
 		break;
-	case SYS_compat_60_sa_enable: /* 332 */
+	case 332: /* SYS_compat_60_sa_enable */
 		break;
-	case SYS_compat_60_sa_setconcurrency: /* 333 */
+	case 333: /* SYS_compat_60_sa_setconcurrency */
 		break;
-	case SYS_compat_60_sa_yield: /* 334 */
+	case 334: /* SYS_compat_60_sa_yield */
 		break;
-	case SYS_compat_60_sa_preempt: /* 335 */
+	case 335: /* SYS_compat_60_sa_preempt */
 		break;
-	case SYS___sigaction_sigtramp: /* 340 */
+	case 340: /* SYS___sigaction_sigtramp */
 		break;
-	case SYS_rasctl: /* 343 */
+	case 343: /* SYS_rasctl */
 		break;
-	case SYS_kqueue: /* 344 */
+	case 344: /* SYS_kqueue */
 		break;
-	case SYS_compat_50_kevent: /* 345 */
+	case 345: /* SYS_compat_50_kevent */
 		break;
-	case SYS__sched_setparam: /* 346 */
+	case 346: /* SYS__sched_setparam */
 		break;
-	case SYS__sched_getparam: /* 347 */
+	case 347: /* SYS__sched_getparam */
 		break;
-	case SYS__sched_setaffinity: /* 348 */
+	case 348: /* SYS__sched_setaffinity */
 		break;
-	case SYS__sched_getaffinity: /* 349 */
+	case 349: /* SYS__sched_getaffinity */
 		break;
-	case SYS_sched_yield: /* 350 */
+	case 350: /* SYS_sched_yield */
 		break;
-	case SYS__sched_protect: /* 351 */
+	case 351: /* SYS__sched_protect */
 		break;
-	case SYS_fsync_range: /* 354 */
+	case 354: /* SYS_fsync_range */
 		break;
-	case SYS_uuidgen: /* 355 */
+	case 355: /* SYS_uuidgen */
 		break;
-	case SYS_getvfsstat: /* 356 */
+	case 356: /* SYS_getvfsstat */
 		SPRINTF("%p, %zu, ", (void *)(intptr_t)si->si_args[0],
 		    (size_t)si->si_args[1]);
 
@@ -1098,7 +1098,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 #undef check_flag
 
 		break;
-	case SYS_statvfs1: /* 357 */
+	case 357: /* SYS_statvfs1 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -1139,7 +1139,7 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		check_flag(ST_NOWAIT);
 #undef check_flag
 		break;
-	case SYS_fstatvfs1: /* 358 */
+	case 358: /* SYS_fstatvfs1 */
 		SPRINTF("%d, ", (int)si->si_args[0]);
 
 		s = get_statvfs(pid, (void *)(intptr_t)si->si_args[1]);
@@ -1178,137 +1178,137 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		check_flag(ST_NOWAIT);
 #undef check_flag
 		break;
-	case SYS_compat_30_fhstatvfs1: /* 359 */
+	case 359: /* SYS_compat_30_fhstatvfs1 */
 		break;
-	case SYS_extattrctl: /* 360 */
+	case 360: /* SYS_extattrctl */
 		break;
-	case SYS_extattr_set_file: /* 361 */
+	case 361: /* SYS_extattr_set_file */
 		break;
-	case SYS_extattr_get_file: /* 362 */
+	case 362: /* SYS_extattr_get_file */
 		break;
-	case SYS_extattr_delete_file: /* 363 */
+	case 363: /* SYS_extattr_delete_file */
 		break;
-	case SYS_extattr_set_fd: /* 364 */
+	case 364: /* SYS_extattr_set_fd */
 		break;
-	case SYS_extattr_get_fd: /* 365 */
+	case 365: /* SYS_extattr_get_fd */
 		break;
-	case SYS_extattr_delete_fd: /* 366 */
+	case 366: /* SYS_extattr_delete_fd */
 		break;
-	case SYS_extattr_set_link: /* 367 */
+	case 367: /* SYS_extattr_set_link */
 		break;
-	case SYS_extattr_get_link: /* 368 */
+	case 368: /* SYS_extattr_get_link */
 		break;
-	case SYS_extattr_delete_link: /* 369 */
+	case 369: /* SYS_extattr_delete_link */
 		break;
-	case SYS_extattr_list_fd: /* 370 */
+	case 370: /* SYS_extattr_list_fd */
 		break;
-	case SYS_extattr_list_file: /* 371 */
+	case 371: /* SYS_extattr_list_file */
 		break;
-	case SYS_extattr_list_link: /* 372 */
+	case 372: /* SYS_extattr_list_link */
 		break;
-	case SYS_compat_50_pselect: /* 373 */
+	case 373: /* SYS_compat_50_pselect */
 		break;
-	case SYS_compat_50_pollts: /* 374 */
+	case 374: /* SYS_compat_50_pollts */
 		break;
-	case SYS_setxattr: /* 375 */
+	case 375: /* SYS_setxattr */
 		break;
-	case SYS_lsetxattr: /* 376 */
+	case 376: /* SYS_lsetxattr */
 		break;
-	case SYS_fsetxattr: /* 377 */
+	case 377: /* SYS_fsetxattr */
 		break;
-	case SYS_getxattr: /* 378 */
+	case 378: /* SYS_getxattr */
 		break;
-	case SYS_lgetxattr: /* 379 */
+	case 379: /* SYS_lgetxattr */
 		break;
-	case SYS_fgetxattr: /* 380 */
+	case 380: /* SYS_fgetxattr */
 		break;
-	case SYS_listxattr: /* 381 */
+	case 381: /* SYS_listxattr */
 		break;
-	case SYS_llistxattr: /* 382 */
+	case 382: /* SYS_llistxattr */
 		break;
-	case SYS_flistxattr: /* 383 */
+	case 383: /* SYS_flistxattr */
 		break;
-	case SYS_removexattr: /* 384 */
+	case 384: /* SYS_removexattr */
 		break;
-	case SYS_lremovexattr: /* 385 */
+	case 385: /* SYS_lremovexattr */
 		break;
-	case SYS_fremovexattr: /* 386 */
+	case 386: /* SYS_fremovexattr */
 		break;
-	case SYS_compat_50___stat30: /* 387 */
+	case 387: /* SYS_compat_50___stat30 */
 		break;
-	case SYS_compat_50___fstat30: /* 388 */
+	case 388: /* SYS_compat_50___fstat30 */
 		break;
-	case SYS_compat_50___lstat30: /* 389 */
+	case 389: /* SYS_compat_50___lstat30 */
 		break;
-	case SYS___getdents30: /* 390 */
+	case 390: /* SYS___getdents30 */
 		SPRINTF("%d, %p, %zu", (int)si->si_args[0],
 		    (void *)(intptr_t)si->si_args[1], (size_t)si->si_args[2]);
 		break;
-	case SYS_compat_30___fhstat30: /* 392 */
+	case 392: /* SYS_compat_30___fhstat30 */
 		break;
-	case SYS_compat_50___ntp_gettime30: /* 393 */
+	case 393: /* SYS_compat_50___ntp_gettime30 */
 		break;
-	case SYS___socket30: /* 394 */
+	case 394: /* SYS___socket30 */
 		break;
-	case SYS___getfh30: /* 395 */
+	case 395: /* SYS___getfh30 */
 		break;
-	case SYS___fhopen40: /* 396 */
+	case 396: /* SYS___fhopen40 */
 		break;
-	case SYS___fhstatvfs140: /* 397 */
+	case 397: /* SYS___fhstatvfs140 */
 		break;
-	case SYS_compat_50___fhstat40: /* 398 */
+	case 398: /* SYS_compat_50___fhstat40 */
 		break;
-	case SYS_aio_cancel: /* 399 */
+	case 399: /* SYS_aio_cancel */
 		break;
-	case SYS_aio_error: /* 400 */
+	case 400: /* SYS_aio_error */
 		break;
-	case SYS_aio_fsync: /* 401 */
+	case 401: /* SYS_aio_fsync */
 		break;
-	case SYS_aio_read: /* 402 */
+	case 402: /* SYS_aio_read */
 		break;
-	case SYS_aio_return: /* 403 */
+	case 403: /* SYS_aio_return */
 		break;
-	case SYS_compat_50_aio_suspend: /* 404 */
+	case 404: /* SYS_compat_50_aio_suspend */
 		break;
-	case SYS_aio_write: /* 405 */
+	case 405: /* SYS_aio_write */
 		break;
-	case SYS_lio_listio: /* 406 */
+	case 406: /* SYS_lio_listio */
 		break;
-	case SYS___mount50: /* 410 */
+	case 410: /* SYS___mount50 */
 		break;
-	case SYS_mremap: /* 411 */
+	case 411: /* SYS_mremap */
 		break;
-	case SYS_pset_create: /* 412 */
+	case 412: /* SYS_pset_create */
 		break;
-	case SYS_pset_destroy: /* 413 */
+	case 413: /* SYS_pset_destroy */
 		break;
-	case SYS_pset_assign: /* 414 */
+	case 414: /* SYS_pset_assign */
 		break;
-	case SYS__pset_bind: /* 415 */
+	case 415: /* SYS__pset_bind */
 		break;
-	case SYS___posix_fadvise50: /* 416 */
+	case 416: /* SYS___posix_fadvise50 */
 		break;
-	case SYS___select50: /* 417 */
+	case 417: /* SYS___select50 */
 		break;
-	case SYS___gettimeofday50: /* 418 */
+	case 418: /* SYS___gettimeofday50 */
 		break;
-	case SYS___settimeofday50: /* 419 */
+	case 419: /* SYS___settimeofday50 */
 		break;
-	case SYS___utimes50: /* 420 */
+	case 420: /* SYS___utimes50 */
 		break;
-	case SYS___adjtime50: /* 421 */
+	case 421: /* SYS___adjtime50 */
 		break;
-	case SYS___lfs_segwait50: /* 422 */
+	case 422: /* SYS___lfs_segwait50 */
 		break;
-	case SYS___futimes50: /* 423 */
+	case 423: /* SYS___futimes50 */
 		break;
-	case SYS___lutimes50: /* 424 */
+	case 424: /* SYS___lutimes50 */
 		break;
-	case SYS___setitimer50: /* 425 */
+	case 425: /* SYS___setitimer50 */
 		break;
-	case SYS___getitimer50: /* 426 */
+	case 426: /* SYS___getitimer50 */
 		break;
-	case SYS___clock_gettime50: /* 427 */
+	case 427: /* SYS___clock_gettime50 */
 #define check_flag(flag) case flag: SPRINTF(#flag); break
 		switch (si->si_args[0]) {
 		check_flag(CLOCK_REALTIME);
@@ -1323,29 +1323,29 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF(", %s", s);
 		free(s);
 		break;
-	case SYS___clock_settime50: /* 428 */
+	case 428: /* SYS___clock_settime50 */
 		break;
-	case SYS___clock_getres50: /* 429 */
+	case 429: /* SYS___clock_getres50 */
 		break;
-	case SYS___nanosleep50: /* 430 */
+	case 430: /* SYS___nanosleep50 */
 		break;
-	case SYS_____sigtimedwait50: /* 431 */
+	case 431: /* SYS_____sigtimedwait50 */
 		break;
-	case SYS___mq_timedsend50: /* 432 */
+	case 432: /* SYS___mq_timedsend50 */
 		break;
-	case SYS___mq_timedreceive50: /* 433 */
+	case 433: /* SYS___mq_timedreceive50 */
 		break;
-	case SYS_compat_60__lwp_park: /* 434 */
+	case 434: /* SYS_compat_60__lwp_park */
 		break;
-	case SYS___kevent50: /* 435 */
+	case 435: /* SYS___kevent50 */
 		break;
-	case SYS___pselect50: /* 436 */
+	case 436: /* SYS___pselect50 */
 		break;
-	case SYS___pollts50: /* 437 */
+	case 437: /* SYS___pollts50 */
 		break;
-	case SYS___aio_suspend50: /* 438 */
+	case 438: /* SYS___aio_suspend50 */
 		break;
-	case SYS___stat50: /* 439 */
+	case 439: /* SYS___stat50 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -1354,14 +1354,14 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS___fstat50: /* 440 */
+	case 440: /* SYS___fstat50 */
 		SPRINTF("%d, ", (int)si->si_args[0]);
 
 		s = get_stat(pid, (void *)(intptr_t)si->si_args[1]);
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS___lstat50: /* 441 */
+	case 441: /* SYS___lstat50 */
 		s = copyinstr(pid, (void *)(intptr_t)si->si_args[0], SIZE_MAX);
 		SPRINTF("%s, ", s);
 		free(s);
@@ -1370,85 +1370,85 @@ decode_args(pid_t pid, siginfo_t *si, char *buf, size_t len)
 		SPRINTF("%s", s);
 		free(s);
 		break;
-	case SYS_____semctl50: /* 442 */
+	case 442: /* SYS_____semctl50 */
 		break;
-	case SYS___shmctl50: /* 443 */
+	case 443: /* SYS___shmctl50 */
 		break;
-	case SYS___msgctl50: /* 444 */
+	case 444: /* SYS___msgctl50 */
 		break;
-	case SYS___getrusage50: /* 445 */
+	case 445: /* SYS___getrusage50 */
 		break;
-	case SYS___timer_settime50: /* 446 */
+	case 446: /* SYS___timer_settime50 */
 		break;
-	case SYS___timer_gettime50: /* 447 */
+	case 447: /* SYS___timer_gettime50 */
 		break;
-	case SYS___ntp_gettime50: /* 448 */
+	case 448: /* SYS___ntp_gettime50 */
 		break;
-	case SYS___wait450: /* 449 */
+	case 449: /* SYS___wait450 */
 		break;
-	case SYS___mknod50: /* 450 */
+	case 450: /* SYS___mknod50 */
 		break;
-	case SYS___fhstat50: /* 451 */
+	case 451: /* SYS___fhstat50 */
 		break;
-	case SYS_pipe2: /* 453 */
+	case 453: /* SYS_pipe2 */
 		break;
-	case SYS_dup3: /* 454 */
+	case 454: /* SYS_dup3 */
 		break;
-	case SYS_kqueue1: /* 455 */
+	case 455: /* SYS_kqueue1 */
 		break;
-	case SYS_paccept: /* 456 */
+	case 456: /* SYS_paccept */
 		break;
-	case SYS_linkat: /* 457 */
+	case 457: /* SYS_linkat */
 		break;
-	case SYS_renameat: /* 458 */
+	case 458: /* SYS_renameat */
 		break;
-	case SYS_mkfifoat: /* 459 */
+	case 459: /* SYS_mkfifoat */
 		break;
-	case SYS_mknodat: /* 460 */
+	case 460: /* SYS_mknodat */
 		break;
-	case SYS_mkdirat: /* 461 */
+	case 461: /* SYS_mkdirat */
 		break;
-	case SYS_faccessat: /* 462 */
+	case 462: /* SYS_faccessat */
 		break;
-	case SYS_fchmodat: /* 463 */
+	case 463: /* SYS_fchmodat */
 		break;
-	case SYS_fchownat: /* 464 */
+	case 464: /* SYS_fchownat */
 		break;
-	case SYS_fexecve: /* 465 */
+	case 465: /* SYS_fexecve */
 		break;
-	case SYS_fstatat: /* 466 */
+	case 466: /* SYS_fstatat */
 		break;
-	case SYS_utimensat: /* 467 */
+	case 467: /* SYS_utimensat */
 		break;
-	case SYS_openat: /* 468 */
+	case 468: /* SYS_openat */
 		break;
-	case SYS_readlinkat: /* 469 */
+	case 469: /* SYS_readlinkat */
 		break;
-	case SYS_symlinkat: /* 470 */
+	case 470: /* SYS_symlinkat */
 		break;
-	case SYS_unlinkat: /* 471 */
+	case 471: /* SYS_unlinkat */
 		break;
-	case SYS_futimens: /* 472 */
+	case 472: /* SYS_futimens */
 		break;
-	case SYS___quotactl: /* 473 */
+	case 473: /* SYS___quotactl */
 		break;
-	case SYS_posix_spawn: /* 474 */
+	case 474: /* SYS_posix_spawn */
 		break;
-	case SYS_recvmmsg: /* 475 */
+	case 475: /* SYS_recvmmsg */
 		break;
-	case SYS_sendmmsg: /* 476 */
+	case 476: /* SYS_sendmmsg */
 		break;
-	case SYS_clock_nanosleep: /* 477 */
+	case 477: /* SYS_clock_nanosleep */
 		break;
-	case SYS____lwp_park60: /* 478 */
+	case 478: /* SYS____lwp_park60 */
 		break;
-	case SYS_posix_fallocate: /* 479 */
+	case 479: /* SYS_posix_fallocate */
 		break;
-	case SYS_fdiscard: /* 480 */
+	case 480: /* SYS_fdiscard */
 		break;
-	case SYS_wait6: /* 481 */
+	case 481: /* SYS_wait6 */
 		break;
-	case SYS_clock_getcpuclockid2: /* 482 */
+	case 482: /* SYS_clock_getcpuclockid2 */
 		break;
 	};
 
