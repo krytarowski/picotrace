@@ -129,6 +129,10 @@ This repository contains a fork called NetBSD strace that is developed
 as part of the picotrace repository and utilizes modern NetBSD kernel
 interfaces.
 
+The Linux strace team recognizes this fork and permits to reuse the old code
+and name of the program and documentation as-is. There is intention to keep
+both the Linux and NetBSD versions compatible from the end-user point of view.
+
 Port of this program to NetBSD is still not merged with this repository.
 
 NetBSD truss
