@@ -150,7 +150,13 @@ static void
 singlestepper_startup(pid_t pid)
 {
 	ptrace_event_t pe;
+#ifdef PT_LWPNEXT
+	struct ptrace_lwpstatus pl;
+	int op = PT_LWPNEXT;
+#else
 	struct ptrace_lwpinfo pl;
+	int op = PT_LWPNEXT;
+#endif
 
 	pid_ctx = emalloc(sizeof(*pid_ctx));
 
@@ -173,7 +179,7 @@ singlestepper_startup(pid_t pid)
 
 #ifdef PT_STEP
 	pl.pl_lwpid = 0;
-	while (ptrace(PT_LWPINFO, pid, (void *)&pl, sizeof(pl)) != -1
+	while (ptrace(op, pid, (void *)&pl, sizeof(pl)) != -1
 	    && pl.pl_lwpid != 0) {
 		xptrace(PT_SETSTEP, pid, NULL, pl.pl_lwpid);
 	}
