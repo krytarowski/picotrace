@@ -155,7 +155,7 @@ singlestepper_startup(pid_t pid)
 	int op = PT_LWPNEXT;
 #else
 	struct ptrace_lwpinfo pl;
-	int op = PT_LWPNEXT;
+	int op = PT_LWPINFO;
 #endif
 
 	pid_ctx = emalloc(sizeof(*pid_ctx));
