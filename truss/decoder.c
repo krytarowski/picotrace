@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#define __LEGACY_PT_LWPINFO
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/mman.h>
