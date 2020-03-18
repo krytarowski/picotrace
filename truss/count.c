@@ -135,7 +135,14 @@ static void
 count_startup(pid_t pid)
 {
 	struct timespec ts;
+#ifdef PT_LWPNEXT
+	struct ptrace_lwpstatus pl;
+	int op = PT_LWPNEXT;
+#else
 	struct ptrace_lwpinfo pl;
+	int op = PT_LWPNEXT;
+#endif
+
 	ptrace_event_t pe;
 	struct lwp_context *lwp_ctx;
 
@@ -145,7 +152,7 @@ count_startup(pid_t pid)
 	pid_ctx->lwp_tree = children_tree_init();
 
 	pl.pl_lwpid = 0;
-	while (ptrace(PT_LWPINFO, pid, (void *)&pl, sizeof(pl)) != -1
+	while (ptrace(op, pid, (void *)&pl, sizeof(pl)) != -1
 		&& pl.pl_lwpid != 0) {
 		lwp_ctx = emalloc(sizeof(*lwp_ctx));
 		lwp_ctx->current_syscall = -1;
