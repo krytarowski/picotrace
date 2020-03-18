@@ -1,3 +1,6 @@
+20200318
+
+* add support for NetBSD 9.99.30 and newer
 * set minimal version to NetBSD 9.0
 * picotrace: support POSIX_SPAWN
 * common: Regenerate for syscall.h 1.308
